@@ -99,6 +99,42 @@ Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
     # compare with print(np.nonzero(true_weights)[0])
 
 
+The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-learn` estimator.
+
+.. code-block:: python
+
+    from sklearn.base import BaseEstimator, RegressorMixin
+    from sklearn.utils.validation import check_is_fitted
+
+
+    class SuSiERegression(BaseEstimator, RegressorMixin):
+        def __init__(self, fit_intercept=True):
+            self.fit_intercept = fit_intercept
+
+        def fit(self, X, y) -> None:
+            self._fit(X, y)
+            return self
+
+        def _fit(self, X, y):
+            res = susie({"X": X, "y": y})
+            
+            # Update fitted attributes
+            self.intercept_ = res.query("name == 'intercept'").coef.values[0]
+            self.coef_ = np.zeros(X.shape[1])
+            for row in res[1:].itertuples():
+                self.coef_[int(row.name)] = float(row.coef)
+            
+        def predict(self, X, y=None) -> np.ndarray:
+            check_is_fitted(self)
+            return np.dot(X, self.coef_.T)
+
+        def __repr__(self) -> str:
+            return super().__repr__()
+
+    susie_reg = SuSiERegression()
+    susie_reg.fit(pd.DataFrame(X), pd.DataFrame(y))
+
+
 =====
 Notes
 =====
