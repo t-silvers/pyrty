@@ -37,7 +37,7 @@ pyrty
     Use R snippets in python code. Let conda manage your R dependencies.
 
 
-Use simple R snippets or scripts in your python code. Works best when the code returns a dataframe or nothing. Let conda/mamba manage your R dependencies outside of your current environment.
+Use simple R snippets or scripts in your python code. Works best when R code accepts a dataframe and returns a dataframe or nothing. Let conda/mamba manage R dependencies outside of your current environment.
 
 For a more powerful alternative, consider using `rpy2`_.
 
@@ -103,9 +103,9 @@ Porting `susie`_ to python
 Notes
 =====
 
-This is a pre-alpha release without a functioning setup, and many limitations aren't currently documented. The API is subject to change. Feel free to report any issues on the `issue tracker`_. `pyrty`_ is only tested on Linux and MacOS.
+This is a pre-alpha release without a functioning setup, and many limitations aren't currently documented. The API is subject to change. Feel free to report any issues on the issue tracker. :code:`pyrty` is only tested on Linux and MacOS.
 
-Note that `pyrty`_ utilizes conda extensively for environment creation, and creates environment and files liberally without warning. This behavior is of course not desirable for most users.
+Note that :code:`pyrty` utilizes conda extensively for environment creation, and creates environment and files liberally without warning. This behavior is of course not desirable for most users.
 
 
 .. _rpy2: https://rpy2.github.io/index.html
