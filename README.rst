@@ -46,7 +46,7 @@ For a more powerful alternative, consider using `rpy2`_.
 Examples
 =====
 
-Porting `susie`_ to python
+Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
 
 .. code-block:: python
 
@@ -111,4 +111,4 @@ Source was packaged using :code:`PyScaffold`. Lots of boilerplate code was gener
 
 
 .. _rpy2: https://rpy2.github.io/index.html
-.. _susie: https://stephenslab.github.io/susieR/index.html
+.. _“Sum of Single Effects” (SuSiE) model: https://stephenslab.github.io/susieR/index.html
