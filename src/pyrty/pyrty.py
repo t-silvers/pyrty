@@ -1,7 +1,9 @@
 import logging
 from pathlib import Path
 import tempfile
-from typing import Dict
+from typing import Dict, List, Union
+
+import pandas as pd
 
 from pyrty.env import PyRFuncEnv
 from pyrty.rscript import RScript
@@ -33,16 +35,21 @@ class PyRFunc:
         func_env = PyRFuncEnv(name=self.alias, **kwargs)
         self.env = func_env.path.as_posix()
 
-    def __call__(self, input: Dict = None, **kwargs):
+    def __call__(self, input: Dict = None, **kwargs) -> Union[pd.DataFrame, None]:
         with tempfile.TemporaryDirectory() as tmpdirname:
             path_args = dict()
             if input is not None:
                 for fn, data in input.items():
+                    if not isinstance(data, pd.DataFrame):
+                        raise TypeError("Input must be a pandas DataFrame")
+
+                    # Write input data to temporary file(s)
                     data.to_csv(Path(tmpdirname) / f"{fn}.csv", index=False)
                     path_args.update({fn: Path(tmpdirname) / f"{fn}.csv"})
-                
+
             df = subprocess_cli_rscript(env=self.env, script=self.rscript, args=path_args, **kwargs)
         
+        # Will just return None if ret is not specified
         return df
 
     def __repr__(self) -> str:
