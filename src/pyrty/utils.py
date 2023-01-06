@@ -7,8 +7,10 @@ from typing import Dict, Union
 
 import pandas as pd
 
+__all__ = ["run_rscript"]
 
-def subprocess_cli_rscript(
+
+def run_rscript(
     script: Path,
     env: Path = None,
     args: Dict = None,

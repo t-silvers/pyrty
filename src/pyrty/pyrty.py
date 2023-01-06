@@ -7,11 +7,12 @@ import pandas as pd
 
 from pyrty.env import PyRFuncEnv
 from pyrty.rscript import RScript
-from pyrty.utils import subprocess_cli_rscript
+from pyrty.utils import run_rscript
 
 __author__ = "t-silvers"
 __copyright__ = "t-silvers"
 __license__ = "MIT"
+__all__ = ["PyRFunc"]
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class PyRFunc:
                     data.to_csv(Path(tmpdirname) / f"{fn}.csv", index=False)
                     path_args.update({fn: Path(tmpdirname) / f"{fn}.csv"})
 
-            df = subprocess_cli_rscript(env=self.env, script=self.rscript, args=path_args, **kwargs)
+            df = run_rscript(env=self.env, script=self.rscript, args=path_args, **kwargs)
         
         # Will just return None if ret is not specified
         return df

@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import List
 
+__all__ = ["BaseRScript", "RScript"]
+
 
 class BaseRScript:
     _libs = ["optparse", "readr", "tibble"]

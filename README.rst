@@ -46,6 +46,9 @@ For a more powerful alternative, consider using `rpy2`_.
 Examples
 =====
 
+Wrap a simple R snippet in a python function:
+=====
+
 Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
 
 .. code-block:: python
@@ -139,6 +142,24 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
     # Explore using mixin built-ins
     susie_reg.predict(X)
     susie_reg.score(X, y)
+
+
+Run an R script from python:
+=====
+
+Running an arbitrary R script with argument parsing (with :code:`optparse`) from python:
+
+.. code-block:: python
+
+    import pyrty
+
+    args = {
+        "input": "input.csv",
+        "output": "output.csv",
+        "param1": 1,
+        "param2": 2,
+    }
+    res = pyrty.utils.run_rscript("analyze.R", args, ret=True)
 
 
 =====

@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 from typing import List
 
+__all__ = ["PyRFuncEnv"]
+
 _logger = logging.getLogger(__name__)
 _conda_prefix = Path(os.environ["CONDA_PREFIX"]).parent
 
