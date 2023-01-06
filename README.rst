@@ -95,8 +95,8 @@ Porting `susie`_ to python
     data = {"X": pd.DataFrame(X), "y": pd.DataFrame(y)}
     susie_nonzero = susie(data)
 
-    print(susie_nonzero.name.to_numpy()[1:])
-    # compare with np.nonzero(true_weights)[0]
+    print(susie_nonzero[1:].sort_values("name").name.to_numpy())
+    # compare with print(np.nonzero(true_weights)[0])
 
 
 =====
