@@ -121,13 +121,14 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
             
             # Update fitted attributes
             self.intercept_ = res.query("name == 'intercept'").coef.values[0]
+            self.intercept_ = float(self.intercept_)
             self.coef_ = np.zeros(X.shape[1])
             for row in res[1:].itertuples():
                 self.coef_[int(row.name)] = float(row.coef)
             
         def predict(self, X, y=None) -> np.ndarray:
             check_is_fitted(self)
-            return np.dot(X, self.coef_.T)
+            return np.dot(X, self.coef_.T) + self.intercept_
 
         def __repr__(self) -> str:
             return super().__repr__()
