@@ -91,8 +91,9 @@ Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
     # (2) Make some data and run susie
     # --------------------------------
     X, y, true_weights = make_regression(noise=8, coef=True)
+    X, y = pd.DataFrame(X), pd.DataFrame(y)
 
-    data = {"X": pd.DataFrame(X), "y": pd.DataFrame(y)}
+    data = {"X": X, "y": y}
     susie_nonzero = susie(data)
 
     print(susie_nonzero[1:].sort_values("name").name.to_numpy())
@@ -132,7 +133,7 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
             return super().__repr__()
 
     susie_reg = SuSiERegression()
-    susie_reg.fit(pd.DataFrame(X), pd.DataFrame(y))
+    susie_reg.fit(X, y)
 
     # Explore using mixin built-ins
     susie_reg.predict(X)
