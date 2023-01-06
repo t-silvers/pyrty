@@ -7,7 +7,7 @@ class RScript:
         self.rscript = rscript
 
     @property
-    def prelims(self):
+    def header(self):
         return [
             "#!/usr/bin/env Rscript",
             "# Path: ",
@@ -42,7 +42,7 @@ class RScript:
 
     def _create_stub(self):
         with open(self.rscript, 'w') as f:
-            f.write('\n'.join(self.prelims))
+            f.write('\n'.join(self.header))
 
     def _add_libraries(self, libraries: List[str] = [], **kwargs):
         self.libraries = self._req_libraries
