@@ -34,16 +34,62 @@ pyrty
 =====
 
 
-    Add a short description here!
+    Use R snippets in python code. Let conda manage your R dependencies.
 
 
-A longer description of your project goes here...
+Use simple R snippets or scripts in your python code. Works best when the code returns a dataframe or nothing. Let conda/mamba manage your R dependencies outside of your current environment.
+
+For a more powerful alternative, consider using rpy2.
 
 
-.. _pyscaffold-notes:
+=====
+pyrty
+=====
 
-Note
-====
+Porting `susie` to python
 
-This project has been set up using PyScaffold 4.3.1. For details and usage
-information on PyScaffold see https://pyscaffold.org/.
+.. code-block:: python
+
+    import numpy as np
+    import pandas as pd
+    from pyrty import pyrty
+    from sklearn.datasets import make_regression
+
+    # (1) Create a python susie function
+    # ----------------------------------
+
+    # Can write code here as list or in a separate file.
+    # If you want to use a separate file, use instead e.g., `code="susie.R"`
+    # and pyrty will look for a file called `susie.R` in the current directory.
+    # User is responsible for making sure the file exists and
+    # contains valid R code for `pyrty.PyRFunc`.
+    susie_code = [
+        "set.seed(1)",
+        "X <- as.matrix(readr::read_csv(opt$X))",
+        "y <- as.matrix(readr::read_csv(opt$y))",
+        "fit <- susieR::susie(X, y, L = 50, coverage = 0.5, min_abs_corr = 0.5)",
+        "ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)",
+        "sel <- coef(fit)[ix]",
+        "names(sel)[1] <- '(Intercept)'",
+        "res <- tibble::tibble(name = names(sel), coef = sel, .name_repair = janitor::make_clean_names)",
+        "res <- dplyr::filter(res, coef != 0)",
+    ]
+
+    susie = pyrty.PyRFunc("susie",
+                          code=susie_code,
+                          ret="res",
+                          r_args=["X", "y"],
+                          libs=["susieR", "janitor", "dplyr"],
+                          )
+    print(susie)
+    # susie(X, y)
+
+    # (2) Make some data and run susie
+    # --------------------------------
+    X, y, true_weights = make_regression(noise=8, coef=True)
+
+    data = {"X": pd.DataFrame(X), "y": pd.DataFrame(y)}
+    susie_nonzero = susie(data)
+
+    print(susie_nonzero.name.to_numpy()[1:])
+    # compare with np.nonzero(true_weights)[0]

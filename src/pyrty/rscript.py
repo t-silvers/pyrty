@@ -47,13 +47,15 @@ class RScript(BaseRScript):
         self.libs = self._libs
         self.libs += libs
         with open(self.rscript, "a") as f:
-            f.write("\n".join(map(lambda x: f"library({x})", self.libs)))
+            f.write("\n".join(map(lambda x: f"suppressPackageStartupMessages(library({x}))", self.libs)))
 
     def _add_args(self, r_args: List[str] = [], **kwargs):
         args = ["", "option_list <- list("]
-        for __ in r_args:
+        for i, __ in enumerate(r_args):
             arg_s = f"make_option('--{__}', type = 'character', metavar = 'character')"
-            # TODO: Add comma if not last arg
+            # Add comma if not last arg
+            if i < len(r_args) - 1:
+                arg_s += ","
             args.append(arg_s)
 
         args += [")", "opt <- parse_args(OptionParser(option_list=option_list))"]

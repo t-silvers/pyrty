@@ -1,5 +1,7 @@
 import logging
 from pathlib import Path
+import tempfile
+from typing import Dict
 
 from pyrty import __version__
 from pyrty.env import PyRFuncEnv
@@ -16,6 +18,7 @@ _logger = logging.getLogger(__name__)
 class PyRFunc:
     def __init__(self, alias: str, **kwargs):
         self.alias = alias
+        self.kwargs = kwargs
         if "libs" in kwargs:
             kwargs["pkgs"] = ["r-{}".format(lib.lower()) for lib in kwargs["libs"]]
         self._make_rscript(**kwargs)
@@ -31,13 +34,18 @@ class PyRFunc:
         func_env = PyRFuncEnv(name=self.alias, **kwargs)
         self.env = func_env.path.as_posix()
 
-    def __call__(self, input=None, **kwargs):
-        # TODO: Convert input to Path as temp files
-        if input is not None:
-            input = Path(input)
-        df = subprocess_cli_rscript(env=self.env, script=self.rscript, **kwargs)
+    def __call__(self, input: Dict = None, **kwargs):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            path_args = dict()
+            if input is not None:
+                for fn, data in input.items():
+                    data.to_csv(Path(tmpdirname) / f"{fn}.csv", index=False)
+                    path_args.update({fn: Path(tmpdirname) / f"{fn}.csv"})
+                
+            df = subprocess_cli_rscript(env=self.env, script=self.rscript, args=path_args, **kwargs)
         
         return df
 
     def __repr__(self) -> str:
-        return f"{self.alias}"
+        args = ", ".join(self.kwargs.get("r_args", []))
+        return f"{self.alias}({args})"
