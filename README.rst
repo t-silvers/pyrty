@@ -134,6 +134,10 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
     susie_reg = SuSiERegression()
     susie_reg.fit(pd.DataFrame(X), pd.DataFrame(y))
 
+    # Explore using mixin built-ins
+    susie_reg.predict(X)
+    susie_reg.score(X, y)
+
 
 =====
 Notes
