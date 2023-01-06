@@ -3,7 +3,7 @@ from typing import List
 
 
 class BaseRScript:
-    _libraries = ["optparse", "readr", "tibble"]
+    _libs = ["optparse", "readr", "tibble"]
     _header = [
         "#!/usr/bin/env Rscript",
         "# Path: ",
@@ -20,7 +20,7 @@ class BaseRScript:
     ]
 
 class RScript(BaseRScript):
-    def __init__(self, rscript: Path, overwrite: bool = True):
+    def __init__(self, rscript: Path, overwrite: bool = True, **kwargs):
         self.rscript = Path(rscript)
         if not self.rscript.exists():
             self._create_stub()
@@ -43,11 +43,11 @@ class RScript(BaseRScript):
         with open(self.rscript, "w") as f:
             f.write("\n".join(self._header))
 
-    def _add_libraries(self, libraries: List[str] = [], **kwargs):
-        self.libraries = self._libraries
-        self.libraries += libraries
+    def _add_libraries(self, libs: List[str] = [], **kwargs):
+        self.libs = self._libs
+        self.libs += libs
         with open(self.rscript, "a") as f:
-            f.write("\n".join(map(lambda x: f"library({x})", self.libraries)))
+            f.write("\n".join(map(lambda x: f"library({x})", self.libs)))
 
     def _add_args(self, r_args: List[str] = [], **kwargs):
         args = ["", "option_list <- list("]
@@ -61,8 +61,9 @@ class RScript(BaseRScript):
             f.write("\n".join(args))
 
     def _add_code(self, code: List[str] = [], **kwargs):
+        code_w_space = [""] + code + [""]
         with open(self.rscript, "a") as f:
-            f.write("\n".join(code))
+            f.write("\n".join(code_w_space))
 
     def _add_ret(self, ret: str, **kwargs):
         ret_lines = [

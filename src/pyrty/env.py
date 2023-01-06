@@ -58,7 +58,7 @@ class PyRFuncEnv:
     _base_env = _conda_prefix / "pyr"
     _pkgs = ["r-base", "r-optparse", "r-readr", "r-tibble"]
 
-    def __init__(self, name: str = None, pkgs: list = []):
+    def __init__(self, name: str = None, pkgs: list = [], **kwargs):
         """
         Create a conda environment to run R scripts in.
 
@@ -84,20 +84,19 @@ class PyRFuncEnv:
 
         # Make conda env for pyrty
         if not (self._base_env).exists():
-            # Use "pyrty-envs" instead of "envs"?
             create_env("conda", prefix="pyr", pkgs=["mamba"])
 
-        if not (self._base_env / "envs" / self.name).exists():
+        if not self.path.exists():
             self._create_env()
 
     @property
     def path(self) -> str:
-        return (self._base_env / "envs" / self.name).as_posix()
+        return (self._base_env / "pyrty-envs" / self.name)
 
     def _create_env(self):
         _logger.info("Creating conda environment")
         create_env("mamba",
-                   name=self.name,
+                   prefix=f"pyr/pyrty-envs/{self.name}",
                    pkgs=self.pkgs,
                    base_env=self._base_env
                    )

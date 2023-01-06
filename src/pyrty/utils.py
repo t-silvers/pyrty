@@ -10,8 +10,9 @@ import pandas as pd
 
 def subprocess_cli_rscript(
     script: Path,
+    env: Path = None,
     args: Dict = None,
-    ret: bool = False,
+    ret: str = None,
     skip_lines: int = 0,
 ) -> Union[None, pd.DataFrame]:
     """Run a command line interface (CLI) command in a subprocess.
@@ -26,11 +27,14 @@ def subprocess_cli_rscript(
     None
     """
     cmd = f"Rscript {script} "
+    if env is not None:
+        cmd = f"source activate {env} && Rscript {script} "
+
     if args is not None:
         for k, v in args.items():
             cmd += f"--{k} {v} "
 
-    if ret is False:
+    if ret is not None:
         subprocess.run(cmd, shell=True, check=True)
 
     else:
@@ -45,4 +49,7 @@ def subprocess_cli_rscript(
                     stdout.append(pd.Series(r))
         
         # Convert to dataframe
-        return pd.concat(stdout[skip_lines:], axis=1).set_index(0).T
+        df = pd.concat(stdout[skip_lines:], axis=1).set_index(0).T
+        df = df.iloc[:-1] # Remove last row of R output
+        
+        return df
