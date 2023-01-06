@@ -103,7 +103,7 @@ Porting `susie`_ to python
 Notes
 =====
 
-:code:`pyrty` was mainly designed for personal use. This is a pre-alpha release without a functioning setup, and many limitations aren't currently documented. The API is subject to change. Feel free to report any issues on the issue tracker. :code:`pyrty` is only tested on Linux and MacOS.
+:code:`pyrty` was mainly designed for personal use. This is a pre-alpha release without a functioning setup, and many limitations aren't documented. The API is subject to change. Feel free to report any issues on the issue tracker. :code:`pyrty` is only tested on Linux and MacOS.
 
 Note that :code:`pyrty` utilizes conda extensively for environment creation, and creates environment and files liberally without warning. This behavior is of course not desirable for most users.
 
