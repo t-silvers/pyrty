@@ -1,5 +1,5 @@
 import sys
-from pyrty import PyRFunc
+from .pyrty import PyRFunc
 
 __all__ = ["PyRFunc"]
 

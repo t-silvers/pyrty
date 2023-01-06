@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 from typing import Dict
 
+from pyrty import __version__
 from pyrty.env import PyRFuncEnv
 from pyrty.rscript import RScript
 from pyrty.utils import subprocess_cli_rscript
