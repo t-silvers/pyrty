@@ -39,7 +39,7 @@ pyrty
 
 Use simple R snippets or scripts in your python code. Works best when the code returns a dataframe or nothing. Let conda/mamba manage your R dependencies outside of your current environment.
 
-For a more powerful alternative, consider using rpy2.
+For a more powerful alternative, consider using `rpy2`_.
 
 
 =====
@@ -58,14 +58,15 @@ Porting `susie`_ to python
     # (1) Create a python susie function
     # ----------------------------------
     # Can write code here as list or in a separate file.
-    # If you want to use a separate file, use instead e.g., `code="susie.R"`
-    # and pyrty will look for a file called `susie.R` in the current directory.
+    # If you want to use a separate file, use instead e.g.,
+    # `pyrty.PyRFunc("susie.R", code=None, ...)` and pyrty 
+    # will look for a file called `susie.R` in the current directory.
     # User is responsible for making sure the file exists and
     # contains valid R code for `pyrty.PyRFunc`.
     susie_code = [
         "set.seed(1)",
-        "X <- read.csv(opt$X)",
-        "y <- read.csv(opt$y)",
+        "X <- as.matrix(read.csv(opt$X))",
+        "y <- as.matrix(read.csv(opt$y))",
         "fit <- susieR::susie(X, y)",
         "ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)",
         "sel <- coef(fit)[ix]",
@@ -96,6 +97,15 @@ Porting `susie`_ to python
 
     print(susie_nonzero.name.to_numpy()[1:])
     # compare with np.nonzero(true_weights)[0]
+
+
+=====
+Notes
+=====
+
+This is a pre-alpha release without a functioning setup, and many limitations aren't currently documented. The API is subject to change. Feel free to report any issues on the `issue tracker`_. `pyrty`_ is only tested on Linux and MacOS.
+
+Note that `pyrty`_ utilizes conda extensively for environment creation, and creates environment and files liberally without warning. This behavior is of course not desirable for most users.
 
 
 .. _rpy2: https://rpy2.github.io/index.html
