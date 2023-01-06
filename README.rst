@@ -43,10 +43,10 @@ For a more powerful alternative, consider using rpy2.
 
 
 =====
-pyrty
+Examples
 =====
 
-Porting `susie` to python
+Porting `susie`_ to python
 
 .. code-block:: python
 
@@ -57,7 +57,6 @@ Porting `susie` to python
 
     # (1) Create a python susie function
     # ----------------------------------
-
     # Can write code here as list or in a separate file.
     # If you want to use a separate file, use instead e.g., `code="susie.R"`
     # and pyrty will look for a file called `susie.R` in the current directory.
@@ -65,13 +64,17 @@ Porting `susie` to python
     # contains valid R code for `pyrty.PyRFunc`.
     susie_code = [
         "set.seed(1)",
-        "X <- as.matrix(readr::read_csv(opt$X))",
-        "y <- as.matrix(readr::read_csv(opt$y))",
-        "fit <- susieR::susie(X, y, L = 50, coverage = 0.5, min_abs_corr = 0.5)",
+        "X <- read.csv(opt$X)",
+        "y <- read.csv(opt$y)",
+        "fit <- susieR::susie(X, y)",
         "ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)",
         "sel <- coef(fit)[ix]",
-        "names(sel)[1] <- '(Intercept)'",
-        "res <- tibble::tibble(name = names(sel), coef = sel, .name_repair = janitor::make_clean_names)",
+        "names(sel)[1] <- 'intercept'",
+        "res <- tibble::tibble(",
+        "  name = names(sel),",
+        "  coef = sel,",
+        "  .name_repair = janitor::make_clean_names",
+        ")",
         "res <- dplyr::filter(res, coef != 0)",
     ]
 
@@ -93,3 +96,7 @@ Porting `susie` to python
 
     print(susie_nonzero.name.to_numpy()[1:])
     # compare with np.nonzero(true_weights)[0]
+
+
+.. _rpy2: https://rpy2.github.io/index.html
+.. _susie: https://stephenslab.github.io/susieR/index.html
