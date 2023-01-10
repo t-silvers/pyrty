@@ -33,14 +33,8 @@ class BaseRScript:
 
 class RScript(BaseRScript):
     def __init__(self, rscript: Path, overwrite: bool = True, **kwargs):
-        super().__init__(rscript, overwrite, **kwargs)
-        self.rscript = Path(rscript)
-        if not self.rscript.exists():
-            self._create_stub()
-        elif overwrite:
-            self._create_stub()
+        super().__init__(Path(rscript), overwrite, **kwargs)
 
-    # function to write the R script to a file
     def write(self, **kwargs):
         self._add_libraries(**kwargs)
 
