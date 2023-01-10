@@ -69,8 +69,8 @@ Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
     # contains valid R code for `pyrty.PyRFunc`.
     susie_code = [
         "set.seed(1)",
-        "X <- as.matrix(read_csv(opt$X))",
-        "y <- as.matrix(read_csv(opt$y))",
+        "X <- as.matrix(readr::read_csv(opt$X))",
+        "y <- as.matrix(readr::read_csv(opt$y))",
         "fit <- susieR::susie(X, y)",
         "ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)",
         "sel <- coef(fit)[ix]",

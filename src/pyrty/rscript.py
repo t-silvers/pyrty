@@ -5,24 +5,27 @@ __all__ = ["BaseRScript", "RScript"]
 
 
 class BaseRScript:
-    _libs = ["optparse", "readr", "tibble"]
-    _header = [
-        "#!/usr/bin/env Rscript",
-        "# Path: ",
-        "# Author: ",
-        "# Date: ",
-        "# Description: ",
-        "# Usage: ",
-        "",
-        
-        # Suppress all output to keep stdout clean
-        "options(warn=-1)",
-        "",
-        "",        
-    ]
+    def __init__(self, script: str):
+        self.script = script
+        self._libs = ["optparse", "readr", "tibble"]
+        self._header = [
+            "#!/usr/bin/env Rscript",
+            "# Path: ",
+            "# Author: ",
+            "# Date: ",
+            "# Description: ",
+            "# Usage: ",
+            "",
+            
+            # Suppress all output to keep stdout clean
+            "options(warn=-1)",
+            "",
+            "",        
+        ]
 
 class RScript(BaseRScript):
     def __init__(self, rscript: Path, overwrite: bool = True, **kwargs):
+        super().__init__(rscript)
         self.rscript = Path(rscript)
         if not self.rscript.exists():
             self._create_stub()
