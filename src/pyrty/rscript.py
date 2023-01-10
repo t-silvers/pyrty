@@ -5,7 +5,7 @@ __all__ = ["BaseRScript", "RScript"]
 
 
 class BaseRScript:
-    def __init__(self, script: str):
+    def __init__(self, script: str, overwrite: bool = True, **kwargs):
         self.script = script
         self._libs = ["optparse", "readr", "tibble"]
         self._header = [
@@ -22,10 +22,18 @@ class BaseRScript:
             "",
             "",        
         ]
+        if not self.rscript.exists():
+            self._create_stub()
+        elif overwrite:
+            self._create_stub()
+
+    def _create_stub(self):
+        with open(self.rscript, "w") as f:
+            f.write("\n".join(self._header))
 
 class RScript(BaseRScript):
     def __init__(self, rscript: Path, overwrite: bool = True, **kwargs):
-        super().__init__(rscript)
+        super().__init__(rscript, overwrite, **kwargs)
         self.rscript = Path(rscript)
         if not self.rscript.exists():
             self._create_stub()
@@ -43,10 +51,6 @@ class RScript(BaseRScript):
         
         if "ret" in kwargs:
             self._add_ret(**kwargs)
-
-    def _create_stub(self):
-        with open(self.rscript, "w") as f:
-            f.write("\n".join(self._header))
 
     def _add_libraries(self, libs: List[str] = [], **kwargs):
         self.libs = self._libs
