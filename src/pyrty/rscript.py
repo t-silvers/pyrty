@@ -5,8 +5,8 @@ __all__ = ["BaseRScript", "RScript"]
 
 
 class BaseRScript:
-    def __init__(self, script: str, overwrite: bool = True, **kwargs):
-        self.script = script
+    def __init__(self, rscript: str, overwrite: bool = True, **kwargs):
+        self.rscript = rscript
         self._libs = ["optparse", "readr", "tibble"]
         self._header = [
             "#!/usr/bin/env Rscript",
