@@ -41,3 +41,14 @@ def test_susie():
                          )
     res_df = test_susie()
     assert res_df is not None
+    
+def test_tcgabiolinks():
+    tcgabiolinks_code = ["subtypes <- PanCancerAtlas_subtypes()"]
+    test_tcgabiolinks = PyRFunc("test_tcgabiolinks",
+                                code=tcgabiolinks_code,
+                                ret="subtypes",
+                                libraries=["TCGAbiolinks"],
+                                pkgs=["bioconductor-tcgabiolinks"]
+                                )
+    subtypes_df = test_tcgabiolinks()
+    assert subtypes_df is not None

@@ -14,7 +14,9 @@ def create_env(
     manager: str,
     prefix: str = None,
     name: str = None,
-    pkgs: List[str] = None,
+    conda_pkgs: List[str] = None,
+    channels: List[str] = None,
+    r_pkgs: List[str] = None,
     base_env: Path = None,
 ) -> None:
     """Create a conda environment."""
@@ -37,16 +39,23 @@ def create_env(
     if base_env is not None:
         cmd = "source activate {} && ".format(base_env.as_posix())
         
-    pkg_string = " ".join(pkgs)
-    cmd = f"{manager} create {env_name} {pkg_string} -c conda-forge --yes"
+    pkg_string = " ".join(conda_pkgs)
     
+    default_channels = ["-c conda-forge"]
+    if channels is not None:
+        if not isinstance(channels, list):
+            raise TypeError
+        for channel in channels:
+            default_channels.append(f"-c {channel}")
+    channels_string = " ".join(default_channels)
+    
+    cmd = f"{manager} create {env_name} {pkg_string} {channels_string} --yes"
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT,
                                shell=True,
                                encoding='utf-8',
-                               errors='replace'
-                               )
+                               errors='replace')
 
     while True:
         output = process.stdout.readline()
@@ -55,12 +64,43 @@ def create_env(
         
         if output:
             print(output.strip(), flush=True)
+            
+    if r_pkgs is not None:
+        # TODO: add note that r_pkgs should be install commands
+        # TODO: set mirror or check for mirror
+        r_pkg_instructions = ";".join(r_pkgs)
+        # TODO: Will fail in the prefix=None case        
+        cmd = f"source activate {_conda_prefix}/{prefix} && R -e '{r_pkg_instructions}'"
+        
+        process = subprocess.Popen(cmd,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT,
+                                   shell=True,
+                                   encoding='utf-8',
+                                   errors='replace')
+
+        while True:
+            output = process.stdout.readline()
+            if output == "" and process.poll() is not None:
+                break
+            
+            if output:
+                print(output.strip(), flush=True)
+        
 
 class PyRFuncEnv:
     _base_env = _conda_prefix / "pyr"
     _pkgs = ["r-base", "r-optparse", "r-readr", "r-tibble"]
 
-    def __init__(self, name: str = None, pkgs: list = [], **kwargs):
+    def __init__(
+        self,
+        name: str = None,
+        conda_pkgs: list = [],
+        channels: list = [],
+        r_pkgs: list = [],
+        r_ver: str = "default",
+        **kwargs,
+    ):
         """
         Create a conda environment to run R scripts in.
 
@@ -74,19 +114,27 @@ class PyRFuncEnv:
             Name of the subdirectory to create the environment in. If not
             specified, a random name will be generated.
 
-        pkgs : list
-            List of packages to install in the environment.
+        conda_pkgs : list
+            List of packages to install in the environment from a conda distribution.
+
+        r_pkgs : list
+            List of packages to install in the environment from an R distribution.
 
         base_env : Path
             Path to the conda environment to use as the base for the new
             environment. If not specified, the root environment will be used.
         """
         self.name = name
-        self.pkgs = pkgs + self._pkgs
+        self.conda_pkgs = conda_pkgs + self._pkgs
+        self.channels = channels
+        self.r_pkgs = r_pkgs
+        self.r_ver = r_ver
+        if self.r_ver != "default":
+            self.r_pkgs[0] = self.r_pkgs[0] + f"=={self.r_ver}"
 
         # Make conda env for pyrty
         if not (self._base_env).exists():
-            create_env("conda", prefix="pyr", pkgs=["mamba"])
+            create_env("conda", prefix="pyr", conda_pkgs=["mamba"])
 
         if not self.path.exists():
             self._create_env()
@@ -99,9 +147,10 @@ class PyRFuncEnv:
         _logger.info("Creating conda environment")
         create_env("mamba",
                    prefix=f"pyr/pyrty-envs/{self.name}",
-                   pkgs=self.pkgs,
-                   base_env=self._base_env
-                   )
+                   conda_pkgs=self.conda_pkgs,
+                   channels=self.channels,
+                   r_pkgs=self.r_pkgs,
+                   base_env=self._base_env)
 
     def __repr__(self):
         return f"PyRFuncEnv(name={self.name})"

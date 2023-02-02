@@ -5,9 +5,9 @@ from typing import Dict, List, Union
 
 import pandas as pd
 
-from pyrty.env import PyRFuncEnv
-from pyrty.rscript import RScript
-from pyrty.utils import run_rscript
+from .env import PyRFuncEnv
+from .rscript import RScript
+from .utils import run_rscript
 
 __author__ = "t-silvers"
 __copyright__ = "t-silvers"
