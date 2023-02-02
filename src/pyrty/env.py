@@ -14,7 +14,7 @@ def create_env(
     manager: str,
     prefix: str = None,
     name: str = None,
-    conda_pkgs: List[str] = None,
+    pkgs: List[str] = None,
     channels: List[str] = None,
     r_pkgs: List[str] = None,
     base_env: Path = None,
@@ -39,7 +39,7 @@ def create_env(
     if base_env is not None:
         cmd = "source activate {} && ".format(base_env.as_posix())
         
-    pkg_string = " ".join(conda_pkgs)
+    pkg_string = " ".join(pkgs)
     
     default_channels = ["-c conda-forge"]
     if channels is not None:
@@ -95,7 +95,7 @@ class PyRFuncEnv:
     def __init__(
         self,
         name: str = None,
-        conda_pkgs: list = [],
+        pkgs: list = [],
         channels: list = [],
         r_pkgs: list = [],
         r_ver: str = "default",
@@ -114,7 +114,7 @@ class PyRFuncEnv:
             Name of the subdirectory to create the environment in. If not
             specified, a random name will be generated.
 
-        conda_pkgs : list
+        pkgs : list
             List of packages to install in the environment from a conda distribution.
 
         r_pkgs : list
@@ -125,7 +125,7 @@ class PyRFuncEnv:
             environment. If not specified, the root environment will be used.
         """
         self.name = name
-        self.conda_pkgs = conda_pkgs + self._pkgs
+        self.pkgs = pkgs + self._pkgs
         self.channels = channels
         self.r_pkgs = r_pkgs
         self.r_ver = r_ver
@@ -134,7 +134,7 @@ class PyRFuncEnv:
 
         # Make conda env for pyrty
         if not (self._base_env).exists():
-            create_env("conda", prefix="pyr", conda_pkgs=["mamba"])
+            create_env("conda", prefix="pyr", pkgs=["mamba"])
 
         if not self.path.exists():
             self._create_env()
@@ -147,7 +147,7 @@ class PyRFuncEnv:
         _logger.info("Creating conda environment")
         create_env("mamba",
                    prefix=f"pyr/pyrty-envs/{self.name}",
-                   conda_pkgs=self.conda_pkgs,
+                   pkgs=self.pkgs,
                    channels=self.channels,
                    r_pkgs=self.r_pkgs,
                    base_env=self._base_env)
