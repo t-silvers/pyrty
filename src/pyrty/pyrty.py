@@ -27,9 +27,11 @@ class PyRFunc:
         self._make_env(**kwargs)
 
     def _make_rscript(self, **kwargs) -> None:
-        _logger.info("Creating R script")
         rscript = RScript(Path(f"{self.alias}.R"), **kwargs)
-        rscript.write(**kwargs)
+        if not Path(f"{self.alias}.R").exists():
+            # TODO: Or if overwrite=True
+            _logger.info("Creating R script")
+            rscript.write(**kwargs)
         self.rscript = rscript.rscript
 
     def _make_env(self, **kwargs) -> None:
