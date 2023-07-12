@@ -197,7 +197,7 @@ With any :code:`pyrty` function, we can save it using :code:`register=True`. Aft
     assert str(splatter_registered.rscript) == str(splatter.rscript)
     assert splatter_registered.env.prefix == splatter.env.prefix
 
-    # Run the function as usual
+    # Run the function as before
     splatter_sim_data = splatter_registered(splatter_params)
     splatter_sim_data
     # A 100 x 100 gene by cell pandas df of simulated counts
