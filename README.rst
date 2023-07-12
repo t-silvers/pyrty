@@ -41,10 +41,8 @@ Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use 
 
     import numpy as np
     import pandas as pd
-    from sklearn.datasets import make_regression
-
     from pyrty import PyRFunc
-
+    from sklearn.datasets import make_regression
 
     # (1) Create a python susie function
     # ----------------------------------
@@ -97,7 +95,6 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
 
     from sklearn.base import BaseEstimator, RegressorMixin
     from sklearn.utils.validation import check_is_fitted
-
 
     class SuSiERegression(BaseEstimator, RegressorMixin):
         def __init__(self, fit_intercept=True):
