@@ -84,7 +84,7 @@ Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use 
     susie_nonzero = susie_nonzero[1:].sort_values("name").name.to_numpy()
     susie_nonzero = np.sort([int(snz) for snz in susie_nonzero if not pd.isna(snz)])
     print(f'True indices of nonzero weights:\n{np.nonzero(true_weights != 0)[0]}\n\n'
-        f'Indices of nonzero weights from SuSiE:\n{susie_nonzero}')
+          f'Indices of nonzero weights from SuSiE:\n{susie_nonzero}')
     # True indices of nonzero weights:
     # [ 2 13 44 57 59 74 76 80 85 97]
 
@@ -235,7 +235,8 @@ The utility function :code:`run_rscript()` is a very lightweight wrapper for run
     with NamedTemporaryFile('w+') as rscript:
         rscript_path = Path(rscript.name)
         rscript_path.write_text(rscript_code)
-        df = run_rscript(f'mamba run -n sandbox Rscript {str(rscript_path)} --c 1', capture_output=True, capture_type='df')
+        df = run_rscript(f'mamba run -n sandbox Rscript {str(rscript_path)} --c 1',
+                         capture_output=True, capture_type='df')
         
     print(df)
     # 0  a   b  c
