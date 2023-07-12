@@ -37,7 +37,7 @@ Examples
 Wrap a simple R snippet in a python function:
 ================================================
 
-Porting the `“Sum of Single Effects” (SuSiE) model`_ to python using :code:`mamba` to manage R dependencies. Here we assume that the user has a valid environment file, :code:`/path/to/susie-env.yaml` (for more info on environment files, see `conda's docs`_)
+Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use :code:`mamba` to manage R dependencies. We assume that the user has a valid environment file, :code:`/path/to/susie-env.yaml` (for more info on environment files, see `conda's docs`_).
 
 .. code-block:: python
 
@@ -193,7 +193,7 @@ Environment creation can be costly. Here we demonstrate how to simulate scRNA-se
     # A 100 x 100 gene by cell pandas df of simulated counts
 
 
-With any :code:`pyrty` function, we can save it using :code:`register=True` in a database that's written to disk. After registering a function, users can load it in a new session without having to re-create it or the requisite scripts and environment--even across multiple users and machines simultaneously.
+With any :code:`pyrty` function, we can save it using :code:`register=True`. After registering a function, it can be re-loaded in a new session without having to re-create it or the requisite scripts and environment--even across multiple users and machines simultaneously.
 
 .. code-block:: python
 
