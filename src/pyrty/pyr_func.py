@@ -32,7 +32,35 @@ class PyRFunc:
         
         # TODO: Allow for user-specified directory
         self.reg_manager = _reg_manager
-    
+
+
+    def __call__(self, finput=None) -> Union[pd.DataFrame, None]:
+        with TemporaryDirectory() as tmpdirname:
+            opts = []
+            if finput:
+                for opt_name, opt_val in finput.items():
+                    if isinstance(opt_val, pd.DataFrame):
+                        tmpfile = Path(tmpdirname) / f'{opt_name}.csv'
+                        opt_val.to_csv(tmpfile, index=False)
+                        opts.append(f"--{opt_name} {tmpfile}")
+                    else:
+                        opts.append(f"--{opt_name} {opt_val}")
+
+            run_cmd = f'Rscript {self.rscript_path} {" ".join(opts)}'
+            foutput = self.run(run_cmd)
+        return foutput
+
+    def __getstate__(self):
+        if not all(hasattr(self, attr) for attr in ['env', 'rscript', '_delete_funcs']):
+            raise AttributeError("Object is missing required attributes for serialization.")
+        return self.env, self.rscript, self._delete_funcs
+
+    def __setstate__(self, state):
+        self.env, self.rscript, self._delete_funcs = state
+
+    def __repr__(self) -> str:
+        return f'{self.alias}({", ".join(self.args)})'
+
     @staticmethod
     def _default_env_name(s) -> str:
         return f'{s}-env'
@@ -53,64 +81,6 @@ class PyRFunc:
             return obj
         else:
             raise NotImplementedError
-
-    @property
-    def args(self) -> List[str]:
-        return self.rscript.rscript_manager.get_opts()
-    
-    @property
-    def run_kwargs(self) -> Dict:
-        # TODO: Temp for development
-        return dict(
-            capture_output = self.rscript.capture_output,
-            capture_type = self.rscript.capture_type,
-            skip_out_lines = self.rscript.skip_out_lines
-        )
-    
-    @property
-    def rscript_path(self) -> str:
-        return self.rscript.rscript_manager.versioned_path
-
-    def register(self, overwrite: bool = False) -> None:
-        if self._is_registered and not overwrite:
-            raise ValueError(f'{self.alias} is already registered.')
-        PyRFunc._db_manager.register(self.alias, self)
-        self._is_registered = True
-
-    def run(self, cmd) -> Union[None, pd.DataFrame]:
-        _logger.info(f'Running {self.alias}...\n\tCommand: {cmd}')
-        return run_rscript(self.env.get_run_in_env_cmd(cmd), **self.run_kwargs)
-
-    @atexit.register
-    def cleanup(self) -> None:
-        """
-        Notes:
-            - This is called when the interpreter exits.
-            - This is called after each cell runs when in iPython.
-            - This is not called when the interpreter is killed by a signal.
-            - This is not called when a thread exits.
-        """
-        if self._delete_funcs:
-            print('Cleaning up...')
-            for func in self._delete_funcs:
-                func()
-            self._delete_funcs.clear()
-
-    @classmethod
-    def from_registry(cls, alias: str, alias_new: str = None):
-        """
-        Notes:
-            Can rename the registered alias by passing in `alias_new`. Might be useful
-            to allow for multiple aliases to point to the same function, multiple versions
-            but with different python class attributes, etc.
-        """
-        func = cls._db_manager.from_registry(alias)
-        setattr(func, 'alias', alias_new or alias)
-        return func
-    
-    def unregister(self):
-        self._db_manager.unregister(self.alias)
-        self._is_registered = False
 
     @classmethod
     def _initialize(cls, alias, env, rscript, register, overwrite, cleanup):
@@ -181,29 +151,60 @@ class PyRFunc:
                              skip_out_lines=skip_out_lines, env_kwargs=env_kwargs, register=register, 
                              overwrite=overwrite, cleanup=['rscript', 'env'])
 
-    def __call__(self, finput=None) -> Union[pd.DataFrame, None]:
-        with TemporaryDirectory() as tmpdirname:
-            opts = []
-            if finput:
-                for opt_name, opt_val in finput.items():
-                    if isinstance(opt_val, pd.DataFrame):
-                        tmpfile = Path(tmpdirname) / f'{opt_name}.csv'
-                        opt_val.to_csv(tmpfile, index=False)
-                        opts.append(f"--{opt_name} {tmpfile}")
-                    else:
-                        opts.append(f"--{opt_name} {opt_val}")
+    @classmethod
+    def from_registry(cls, alias: str, alias_new: str = None):
+        """
+        Notes:
+            Can rename the registered alias by passing in `alias_new`. Might be useful
+            to allow for multiple aliases to point to the same function, multiple versions
+            but with different python class attributes, etc.
+        """
+        func = cls._db_manager.from_registry(alias)
+        setattr(func, 'alias', alias_new or alias)
+        return func
 
-            run_cmd = f'Rscript {self.rscript_path} {" ".join(opts)}'
-            foutput = self.run(run_cmd)
-        return foutput
+    @property
+    def args(self) -> List[str]:
+        return self.rscript.rscript_manager.get_opts()
+    
+    @property
+    def run_kwargs(self) -> Dict:
+        # TODO: Temp for development
+        return dict(
+            capture_output = self.rscript.capture_output,
+            capture_type = self.rscript.capture_type,
+            skip_out_lines = self.rscript.skip_out_lines
+        )
+    
+    @property
+    def rscript_path(self) -> str:
+        return self.rscript.rscript_manager.versioned_path
 
-    def __getstate__(self):
-        if not all(hasattr(self, attr) for attr in ['env', 'rscript', '_delete_funcs']):
-            raise AttributeError("Object is missing required attributes for serialization.")
-        return self.env, self.rscript, self._delete_funcs
+    def register(self, overwrite: bool = False) -> None:
+        if self._is_registered and not overwrite:
+            raise ValueError(f'{self.alias} is already registered.')
+        PyRFunc._db_manager.register(self.alias, self)
+        self._is_registered = True
 
-    def __setstate__(self, state):
-        self.env, self.rscript, self._delete_funcs = state
+    def run(self, cmd) -> Union[None, pd.DataFrame]:
+        _logger.info(f'Running {self.alias}...\n\tCommand: {cmd}')
+        return run_rscript(self.env.get_run_in_env_cmd(cmd), **self.run_kwargs)
+    
+    def unregister(self):
+        self._db_manager.unregister(self.alias)
+        self._is_registered = False
 
-    def __repr__(self) -> str:
-        return f'{self.alias}({", ".join(self.args)})'
+    @atexit.register
+    def cleanup(self) -> None:
+        """
+        Notes:
+            - This is called when the interpreter exits.
+            - This is called after each cell runs when in iPython.
+            - This is not called when the interpreter is killed by a signal.
+            - This is not called when a thread exits.
+        """
+        if self._delete_funcs:
+            print('Cleaning up...')
+            for func in self._delete_funcs:
+                func()
+            self._delete_funcs.clear()
