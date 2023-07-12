@@ -10,7 +10,7 @@ pyrty
     Use R snippets as python functions. Manage R dependencies separately.
 
 
-Use simple R snippets or scripts in python as functions with pythonic signatures. Most powerful when R code returns a conformable dataframe object. Let :code:`conda` , :code:`mamba` , :code:`renv` , or :code:`packrat` manage R dependencies outside of your current environment.
+Use simple R snippets or scripts in python as functions with pythonic signatures. Let :code:`conda` , :code:`mamba` , :code:`renv` , or :code:`packrat` manage R dependencies outside of your current environment. Most powerful when R code returns a conformable dataframe object.
 
 For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to go the other way around (python in R).
 
