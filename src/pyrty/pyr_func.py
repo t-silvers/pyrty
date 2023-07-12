@@ -13,6 +13,7 @@ from pyrty.registry import DBManager, RegistryManager
 from pyrty.utils import run_rscript
 
 _logger = logging.getLogger(__name__)
+_reg_manager = RegistryManager()
 
 class Cleanup(Enum):
     ENV = 'env'
