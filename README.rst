@@ -68,8 +68,8 @@ Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use 
     susie_envfile = '/path/to/susie-env.yaml'
     susie_pkgs = ['dplyr', 'janitor', 'optparse', 'readr', 'susieR', 'tibble']
     susie = PyRFunc.from_scratch('susie', susie_code, opts=susie_opts, libs=susie_pkgs,
-                                manager='mamba', env_kwargs=dict(envfile=susie_envfile),
-                                capture_output=True, capture_obj_name='res')
+                                 manager='mamba', env_kwargs=dict(envfile=susie_envfile),
+                                 capture_output=True, capture_obj_name='res')
 
     print(susie)
     # susie(X, y)
