@@ -20,6 +20,16 @@ For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to go t
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
 
 
+=================
+Installation
+=================
+
+.. code-block:: bash
+
+    git clone https://github.com/t-silvers/pyrty.git
+    cd pyrty
+    pip install .
+
 ==========
 Examples
 ==========
@@ -127,7 +137,7 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
 Deploy an R snippet in an existing environment:
 =====================================================
 
-Environment creation can be costly. Here we demonstrate how to simulate scRNA-seq data using :code:`splatter` using an existing environment. For more info on :code:`splatter`, see the `splatter tutorial`_.
+Environment creation can be costly. Here we demonstrate how to simulate scRNA-seq data using :code:`splatter` with an existing environment. For more info on :code:`splatter`, see the `splatter tutorial`_.
 
 .. code-block:: python
 
