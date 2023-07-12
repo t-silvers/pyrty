@@ -2,4 +2,4 @@
 Contributors
 ============
 
-* t-silvers <tsilvers@stanford.edu>
+* Thomas Silvers <thomassilvers1@gmail.com>

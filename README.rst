@@ -1,28 +1,3 @@
-.. These are examples of badges you might want to add to your README:
-   please update the URLs accordingly
-
-    .. image:: https://api.cirrus-ci.com/github/<USER>/pyrty.svg?branch=main
-        :alt: Built Status
-        :target: https://cirrus-ci.com/github/<USER>/pyrty
-    .. image:: https://readthedocs.org/projects/pyrty/badge/?version=latest
-        :alt: ReadTheDocs
-        :target: https://pyrty.readthedocs.io/en/stable/
-    .. image:: https://img.shields.io/coveralls/github/<USER>/pyrty/main.svg
-        :alt: Coveralls
-        :target: https://coveralls.io/r/<USER>/pyrty
-    .. image:: https://img.shields.io/pypi/v/pyrty.svg
-        :alt: PyPI-Server
-        :target: https://pypi.org/project/pyrty/
-    .. image:: https://img.shields.io/conda/vn/conda-forge/pyrty.svg
-        :alt: Conda-Forge
-        :target: https://anaconda.org/conda-forge/pyrty
-    .. image:: https://pepy.tech/badge/pyrty/month
-        :alt: Monthly Downloads
-        :target: https://pepy.tech/project/pyrty
-    .. image:: https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Twitter
-        :alt: Twitter
-        :target: https://twitter.com/pyrty
-
 .. image:: https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold
     :alt: Project generated with PyScaffold
     :target: https://pyscaffold.org/
@@ -34,61 +9,60 @@ pyrty
 =====
 
 
-    Use R snippets in python code. Let conda manage your R dependencies.
+    Use R snippets in python code. Manage R dependencies separately.
 
 
-Use simple R snippets or scripts in your python code. Works best when R code accepts a dataframe and returns a dataframe or nothing. Let conda/mamba manage R dependencies outside of your current environment.
+Use simple R snippets or scripts in python as functions with pythonic signatures. Most powerful when R code returns a conformable dataframe object. Let :code:`conda` , :code:`mamba` , :code:`renv` , or :code:`packrat` manage R dependencies outside of your current environment.
 
-For a more powerful alternative, consider using `rpy2`_.
+For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to go the other way around (python in R).
+
+.. _rpy2: https://rpy2.github.io/doc/latest/html/index.html
+.. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
 
 
-=====
+==========
 Examples
-=====
+==========
 
 Wrap a simple R snippet in a python function:
-=====
+================================================
 
-Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
+Porting the `“Sum of Single Effects” (SuSiE) model`_ to python using :code:`mamba` to manage R dependencies. Here we assume that the user has a valid environment file, :code:`/path/to/susie-env.yaml` (for more info on environment files, see `conda's docs`_)
 
 .. code-block:: python
 
     import numpy as np
     import pandas as pd
-    import pyrty
     from sklearn.datasets import make_regression
+
+    from pyrty import PyRFunc
 
 
     # (1) Create a python susie function
     # ----------------------------------
     # Can write code here as list or in a separate file.
-    # If you want to use a separate file, use instead e.g.,
-    # `pyrty.PyRFunc("susie.R", code=None, ...)` and pyrty 
-    # will look for a file called `susie.R` in the current directory.
-    # User is responsible for making sure the file exists and
-    # contains valid R code for `pyrty.PyRFunc`.
-    susie_code = [
-        "set.seed(1)",
-        "X <- as.matrix(readr::read_csv(opt$X))",
-        "y <- as.matrix(readr::read_csv(opt$y))",
-        "fit <- susieR::susie(X, y)",
-        "ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)",
-        "sel <- coef(fit)[ix]",
-        "names(sel)[1] <- 'intercept'",
-        "res <- tibble::tibble(",
-        "  name = names(sel),",
-        "  coef = sel,",
-        "  .name_repair = janitor::make_clean_names",
-        ")",
-        "res <- dplyr::filter(res, coef != 0)",
-    ]
+    # If you write the code as in here, `pyrty` will manage
+    # R script creation (and deletion) for you.
+    susie_code = """set.seed(1)
+    X <- as.matrix(readr::read_csv(opt$X, show_col_types = FALSE))
+    y <- as.matrix(readr::read_csv(opt$y, show_col_types = FALSE))
+    fit <- susieR::susie(X, y)
+    ix <- c(1, unlist(fit$sets$cs, use.names = F) + 1)
+    sel <- coef(fit)[ix]
+    names(sel)[1] <- 'intercept'
+    res <- tibble::tibble(
+      name = names(sel),
+      coef = sel,
+      .name_repair = janitor::make_clean_names
+    )
+    res <- dplyr::filter(tibble::as_tibble(res), coef != 0)"""
+    susie_opts = dict(X = {}, y = {})
+    susie_envfile = '/path/to/susie-env.yaml'
+    susie_pkgs = ['dplyr', 'janitor', 'optparse', 'readr', 'susieR', 'tibble']
+    susie = PyRFunc.from_scratch('susie', susie_code, opts=susie_opts, libs=susie_pkgs,
+                                manager='mamba', env_kwargs=dict(envfile=susie_envfile),
+                                capture_output=True, capture_obj_name='res')
 
-    susie = pyrty.PyRFunc("susie",
-                          code=susie_code,
-                          ret="res",
-                          r_args=["X", "y"],
-                          libs=["susieR", "janitor", "dplyr"],
-                          )
     print(susie)
     # susie(X, y)
 
@@ -96,13 +70,18 @@ Porting the `“Sum of Single Effects” (SuSiE) model`_ to python
     # --------------------------------
     X, y, true_weights = make_regression(noise=8, coef=True)
     X, y = pd.DataFrame(X), pd.DataFrame(y)
+    data = {'X': X, 'y': y}
 
-    data = {"X": X, "y": y}
     susie_nonzero = susie(data)
+    susie_nonzero = susie_nonzero[1:].sort_values("name").name.to_numpy()
+    susie_nonzero = np.sort([int(snz) for snz in susie_nonzero if not pd.isna(snz)])
+    print(f'True indices of nonzero weights:\n{np.nonzero(true_weights != 0)[0]}\n\n'
+        f'Indices of nonzero weights from SuSiE:\n{susie_nonzero}')
+    # True indices of nonzero weights:
+    # [ 2 13 44 57 59 74 76 80 85 97]
 
-    print(susie_nonzero[1:].sort_values("name").name.to_numpy())
-    # compare with print(np.nonzero(true_weights)[0])
-
+    # Indices of nonzero weights from SuSiE:
+    # [ 2 13 57 59 74 76 80 85 97]
 
 The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-learn` estimator.
 
@@ -121,7 +100,7 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
             return self
 
         def _fit(self, X, y):
-            res = susie({"X": X, "y": y})
+            res = susie({'X': X, 'y': y})
             
             # Update fitted attributes
             self.intercept_ = res.query("name == 'intercept'").coef.values[0]
@@ -145,34 +124,130 @@ The resulting function, :code:`susie`, can be wrapped in a custom :code:`scikit-
     susie_reg.score(X, y)
 
 
-Run an R script from python:
-=====
+Deploy an R snippet in an existing environment:
+=====================================================
 
-Running an arbitrary R script with argument parsing (with :code:`optparse`) from python:
+Environment creation can be costly. Here we demonstrate how to simulate scRNA-seq data using :code:`splatter` using an existing environment. For more info on :code:`splatter`, see the `splatter tutorial`_.
 
 .. code-block:: python
 
-    import pyrty
+    # (1) Create a python splatter::splatSimulate function
+    # ----------------------------------------------------
+    splatter_code = """# Params
+    set.seed(1)
+    usr.nGenes <- opt$n_genes
+    usr.mean.shape <- opt$mean_shape
+    usr.de.prob <- opt$de_prob
+    params <- splatter::newSplatParams()
+    params <- splatter::setParams(
+      params,
+      nGenes = usr.nGenes,
+      mean.shape = usr.mean.shape,
+      de.prob = usr.de.prob
+    )
 
-    args = {
-        "input": "input.csv",
-        "output": "output.csv",
-        "param1": 1,
-        "param2": 2,
-    }
-    res = pyrty.utils.run_rscript("analyze.R", args, ret=True)
+    # Simulate data using estimated parameters
+    sim <- splatter::splatSimulate(params)
 
+    # Parse data
+    sim.res <- tibble::as_tibble(
+      SummarizedExperiment::assay(sim, "counts"),
+      validate = NULL,
+      rownames = "gene_id",
+      .name_repair = janitor::make_clean_names
+    )
+    sim.res$gene_id <- janitor::make_clean_names(sim.res$gene_id)"""
+
+    splatter_opts = dict(
+        n_genes = dict(type="'integer'", default=1000),
+        mean_shape = dict(type="'double'", default=0.6),
+        de_prob = dict(type="'double'", default=0.1),
+    )
+    splatter_env_prefix = '/path/to/envs/splatter-env'
+    splatter_env = PyREnv.from_existing('splatter-env', splatter_env_prefix, 'mamba')
+    splatter_pkgs = ['dplyr', 'janitor', 'optparse', 'readr', 'splatter', 'tibble']
+    splatter_rscript_kwargs = dict()
+    splatter = PyRFunc.from_env('splatter', splatter_env, code=splatter_code, opts=splatter_opts,
+                                libs=splatter_pkgs, capture_output=True, capture_obj_name='sim.res',
+                                register=True, overwrite=True)
+
+    # (2) Make some data and run splatSimulate
+    # ----------------------------------------
+    splatter_params = {'n_genes': 100, 'mean_shape': 0.5, 'de_prob': 0.5}
+    splatter_sim_data = (
+        splatter(splatter_params)
+        .set_index('gene_id')
+        .dropna()
+    )
+    splatter_sim_data
+    # A 100 x 100 gene by cell pandas df of simulated counts
+
+
+With any :code:`pyrty` function, we can save it using :code:`register=True` in a database that's written to disk. After registering a function, users can load it in a new session without having to re-create it or the requisite scripts and environment--even across multiple users and machines simultaneously.
+
+.. code-block:: python
+
+    splatter_registered = PyRFunc.from_registry('splatter')
+
+    # Check that the function is the same
+    assert str(splatter_registered.rscript) == str(splatter.rscript)
+    assert splatter_registered.env.prefix == splatter.env.prefix
+
+    # Run the function as usual
+    splatter_sim_data = splatter_registered(splatter_params)
+    splatter_sim_data
+    # A 100 x 100 gene by cell pandas df of simulated counts
+
+
+Run an R script from python:
+===================================
+
+The utility function :code:`run_rscript()` is a very lightweight wrapper for running an R script and (optionally) capturing its output:
+
+.. code-block:: python
+
+    from pathlib import Path
+    from tempfile import NamedTemporaryFile
+
+    from pyrty.utils import run_rscript
+
+    # Create a temporary R script or use an existing one
+    rscript_code = """# Keep stdout clean
+    options(warn=-1)
+    suppressPackageStartupMessages(library(optparse))
+    suppressPackageStartupMessages(library(tidyverse))
+    option_list <- list(make_option('--c', type = 'double'))
+    opt <- parse_args(OptionParser(option_list=option_list))
+
+    # Create a dataframe and write to stdout
+    a <- 1:5
+    df <- tibble::tibble(a, b = a * 2, c = opt$c)
+    try(writeLines(readr::format_csv(df), stdout()), silent=TRUE)"""
+
+    with NamedTemporaryFile('w+') as rscript:
+        rscript_path = Path(rscript.name)
+        rscript_path.write_text(rscript_code)
+        df = run_rscript(f'mamba run -n sandbox Rscript {str(rscript_path)} --c 1', capture_output=True, capture_type='df')
+        
+    print(df)
+    # 0  a   b  c
+    # 1  1   2  1
+    # 2  2   4  1
+    # 3  3   6  1
+    # 4  4   8  1
+    # 5  5  10  1
 
 =====
 Notes
 =====
 
-:code:`pyrty` was developed for personal use. This is a pre-alpha release without a functioning setup, and many limitations aren't documented. The API is subject to change. Feel free to report any issues on the issue tracker. :code:`pyrty` is only tested on Linux and MacOS.
+:code:`pyrty` was developed for personal use in a single-user environment. This is a pre-alpha release and many limitations aren't documented. The API is subject to change. Feel free to report any issues on the issue tracker. :code:`pyrty` is only tested on Linux and MacOS.
 
-Note that :code:`pyrty` utilizes conda extensively for environment creation, and it will create environments and files liberally, without warning. This behavior is not desirable for most users.
+Note that :code:`pyrty` utilizes :code:`conda` /:code:`mamba` /:code:`packrat` /:code:`renv` environment creation, and it will create environments and files liberally, without much warning. This behavior is not desirable for most users.
 
 Source was packaged using :code:`PyScaffold`. Lots of boilerplate code was generated by :code:`PyScaffold` and is not documented or relevant here.
 
 
-.. _rpy2: https://rpy2.github.io/index.html
 .. _“Sum of Single Effects” (SuSiE) model: https://stephenslab.github.io/susieR/index.html
+.. _conda's docs: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file
+.. _splatter tutorial: https://bioconductor.org/packages/release/bioc/vignettes/splatter/inst/doc/splatter.html#4_The_SplatParams_object
