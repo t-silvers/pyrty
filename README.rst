@@ -171,7 +171,6 @@ Environment creation can be costly. Here we demonstrate how to simulate scRNA-se
     splatter_env_prefix = '/path/to/envs/splatter-env'
     splatter_env = PyREnv.from_existing('splatter-env', splatter_env_prefix, 'mamba')
     splatter_pkgs = ['dplyr', 'janitor', 'optparse', 'readr', 'splatter', 'tibble']
-    splatter_rscript_kwargs = dict()
     splatter = PyRFunc.from_env('splatter', splatter_env, code=splatter_code, opts=splatter_opts,
                                 libs=splatter_pkgs, capture_output=True, capture_obj_name='sim.res',
                                 register=True, overwrite=True)
