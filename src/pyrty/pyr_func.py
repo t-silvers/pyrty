@@ -13,7 +13,6 @@ from pyrty.registry import DBManager, RegistryManager
 from pyrty.utils import run_rscript
 
 _logger = logging.getLogger(__name__)
-_reg_manager = RegistryManager()
 
 class Cleanup(Enum):
     ENV = 'env'
@@ -29,8 +28,6 @@ class PyRFunc:
         self.rscript = rscript
         self._delete_funcs = set()
         self._is_registered = self._db_manager.entry_exists(self.alias)
-
-        # TODO: Allow for user-specified directory
         self.reg_manager = _reg_manager
 
     def __call__(self, finput=None) -> Union[pd.DataFrame, None]:
