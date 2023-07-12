@@ -22,17 +22,16 @@ class Cleanup(Enum):
 
 class PyRFunc:
     _db_manager = DBManager()
-    
+
     def __init__(self, alias, env, rscript):
         self.alias = alias
         self.env = env
         self.rscript = rscript
         self._delete_funcs = set()
         self._is_registered = self._db_manager.entry_exists(self.alias)
-        
+
         # TODO: Allow for user-specified directory
         self.reg_manager = _reg_manager
-
 
     def __call__(self, finput=None) -> Union[pd.DataFrame, None]:
         with TemporaryDirectory() as tmpdirname:
@@ -72,7 +71,7 @@ class PyRFunc:
     @staticmethod
     def _default_rscript_path(s) -> Path:
         return _reg_manager.scripts / f'{s}.R'
-    
+
     @staticmethod
     def _check_obj(obj, cls_type):
         if isinstance(obj, (str, Path)):
@@ -97,7 +96,7 @@ class PyRFunc:
         return func
 
     @classmethod
-    def _create_rscript(cls, rscript_or_code, opts=None, libs=None, capture_output=False, capture_obj_name=None, 
+    def _create_rscript(cls, rscript_or_code, opts=None, libs=None, capture_output=False, capture_obj_name=None,
                         capture_type='df', skip_out_lines=0):
         if isinstance(rscript_or_code, PyRScript):
             return rscript_or_code
@@ -106,7 +105,7 @@ class PyRFunc:
             return PyRScript(cls._default_rscript_path(alias), code, libs=libs, opts=opts,
                              capture_output=capture_output, capture_obj_name=capture_obj_name,
                              capture_type=capture_type, skip_out_lines=skip_out_lines)
-    
+
     @classmethod
     def _create_env(cls, env_or_manager, env_kwargs=None):
         if isinstance(env_or_manager, PyREnv):
@@ -116,11 +115,11 @@ class PyRFunc:
             return PyREnv(cls._default_env_name(alias), cls._default_env_prefix(alias), manager, env_kwargs=env_kwargs)
 
     @classmethod
-    def from_data(cls, alias, rscript_or_code, env_or_manager='mamba', opts=None, libs=None, capture_output=False, 
-                  capture_obj_name=None, capture_type='df', skip_out_lines=0, env_kwargs=None, register=True, 
+    def from_data(cls, alias, rscript_or_code, env_or_manager='mamba', opts=None, libs=None, capture_output=False,
+                  capture_obj_name=None, capture_type='df', skip_out_lines=0, env_kwargs=None, register=True,
                   overwrite=False, cleanup=None) -> 'PyRFunc':
         cls_rscript = cls._create_rscript(rscript_or_code, opts=opts, libs=libs, capture_output=capture_output,
-                                          capture_obj_name=capture_obj_name, capture_type=capture_type, 
+                                          capture_obj_name=capture_obj_name, capture_type=capture_type,
                                           skip_out_lines=skip_out_lines)
         cls_env = cls._create_env(env_or_manager, env_kwargs=env_kwargs)
         return cls._initialize(alias, cls_env, cls_rscript, register, overwrite=overwrite, cleanup=cleanup)
@@ -128,17 +127,17 @@ class PyRFunc:
     @classmethod
     def from_rscript(cls, alias, rscript, manager: str = 'mamba', env_kwargs: Union[Dict, None] = None,
                      register: bool = True, overwrite: bool = False) -> 'PyRFunc':
-        return cls.from_data(alias, rscript, manager, env_kwargs=env_kwargs, register=register, 
+        return cls.from_data(alias, rscript, manager, env_kwargs=env_kwargs, register=register,
                              overwrite=overwrite, cleanup=['env'])
 
     @classmethod
     def from_env(cls, alias, env, code: str, opts: Union[List, None] = None, libs: Union[List, None] = None,
                  capture_output: bool = False, capture_obj_name : str = None,
-                 capture_type: str = 'df', skip_out_lines: int = 0, register: bool = True, 
+                 capture_type: str = 'df', skip_out_lines: int = 0, register: bool = True,
                  overwrite: bool = False) -> 'PyRFunc':
         return cls.from_data(alias, code, env, opts=opts, libs=libs, capture_output=capture_output,
-                             capture_obj_name=capture_obj_name, capture_type=capture_type, 
-                             skip_out_lines=skip_out_lines, register=register, overwrite=overwrite, 
+                             capture_obj_name=capture_obj_name, capture_type=capture_type,
+                             skip_out_lines=skip_out_lines, register=register, overwrite=overwrite,
                              cleanup=['rscript'])
 
     @classmethod
@@ -147,8 +146,8 @@ class PyRFunc:
                      skip_out_lines: int = 0, manager: str = 'mamba', env_kwargs: Union[Dict, None] = None,
                      register: bool = True, overwrite: bool = False) -> 'PyRFunc':
         return cls.from_data(alias, code, manager, opts=opts, libs=libs, capture_output=capture_output,
-                             capture_obj_name=capture_obj_name, capture_type=capture_type, 
-                             skip_out_lines=skip_out_lines, env_kwargs=env_kwargs, register=register, 
+                             capture_obj_name=capture_obj_name, capture_type=capture_type,
+                             skip_out_lines=skip_out_lines, env_kwargs=env_kwargs, register=register,
                              overwrite=overwrite, cleanup=['rscript', 'env'])
 
     @classmethod
@@ -166,7 +165,7 @@ class PyRFunc:
     @property
     def args(self) -> List[str]:
         return self.rscript.rscript_manager.get_opts()
-    
+
     @property
     def run_kwargs(self) -> Dict:
         # TODO: Temp for development
@@ -175,7 +174,7 @@ class PyRFunc:
             capture_type = self.rscript.capture_type,
             skip_out_lines = self.rscript.skip_out_lines
         )
-    
+
     @property
     def rscript_path(self) -> str:
         return self.rscript.rscript_manager.versioned_path
@@ -189,7 +188,7 @@ class PyRFunc:
     def run(self, cmd) -> Union[None, pd.DataFrame]:
         _logger.info(f'Running {self.alias}...\n\tCommand: {cmd}')
         return run_rscript(self.env.get_run_in_env_cmd(cmd), **self.run_kwargs)
-    
+
     def unregister(self):
         self._db_manager.unregister(self.alias)
         self._is_registered = False
