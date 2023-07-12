@@ -206,7 +206,7 @@ With any :code:`pyrty` function, we can save it using :code:`register=True`. Aft
 Run an R script from python:
 ===================================
 
-The utility function :code:`run_rscript()` is a very lightweight wrapper for running an R script and (optionally) capturing its output:
+The utility function :code:`run_rscript()` is a very lightweight wrapper for running an R script and (optionally) capturing its output. It is used internally by :code:`pyrty` to run R scripts in a subprocess. Below we demonstrate its usage with a simple R script that takes a single argument :code:`--c` and writes a dataframe to stdout in some existing :code:`mamba` environment, :code:`sandbox`.
 
 .. code-block:: python
 
