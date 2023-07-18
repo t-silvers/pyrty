@@ -13,3 +13,4 @@
 - Clean up signatures for `PyRFunc` funcs that return instances. Tackle after refactoring env creation.
 - Log env and script creation
 - Use `Arrow` for big-data "`df"-capturing
+- Reduce `subprocess` calls for apply-style functions

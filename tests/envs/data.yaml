@@ -1,0 +1,6 @@
+channels:
+- defaults
+- conda-forge
+dependencies:
+- tqdm
+name: test-env

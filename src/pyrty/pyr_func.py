@@ -1,152 +1,164 @@
 import atexit
 import logging
+import re
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Dict, List, Union
-from enum import Enum
-
-import pandas as pd
+from typing import List, Union, Dict
 
 from pyrty.pyr_env import PyREnv
-from pyrty.pyr_rscript import PyRScript
+from pyrty.pyr_script import PyRScript
 from pyrty.registry import DBManager, RegistryManager
-from pyrty.utils import run_rscript
+from pyrty.run_manager import RunManager
+from pyrty.script_writers.base_script import OutputType
 
 _logger = logging.getLogger(__name__)
 _reg_manager = RegistryManager()
-
-class Cleanup(Enum):
-    ENV = 'env'
-    RSCRIPT = 'rscript'
+_db_manager = DBManager(db_dir=_reg_manager.pyrty_dir)
 
 
 class PyRFunc:
-    _db_manager = DBManager()
-
-    def __init__(self, alias, env, rscript):
+    def __init__(self, alias: str, script: PyRScript = None, env: PyREnv = None, keep: bool = True):
         self.alias = alias
+        self.script = script
         self.env = env
-        self.rscript = rscript
+        self.keep = keep
+        self.run_manager = None
+        self._args = []
         self._delete_funcs = set()
-        self._is_registered = self._db_manager.entry_exists(self.alias)
-        self.reg_manager = _reg_manager
 
-    def __call__(self, finput=None) -> Union[pd.DataFrame, None]:
-        with TemporaryDirectory() as tmpdirname:
-            opts = []
-            if finput:
-                for opt_name, opt_val in finput.items():
-                    if isinstance(opt_val, pd.DataFrame):
-                        tmpfile = Path(tmpdirname) / f'{opt_name}.csv'
-                        opt_val.to_csv(tmpfile, index=False)
-                        opts.append(f"--{opt_name} {tmpfile}")
-                    else:
-                        opts.append(f"--{opt_name} {opt_val}")
-
-            run_cmd = f'Rscript {self.rscript_path} {" ".join(opts)}'
-            foutput = self.run(run_cmd)
-        return foutput
+    def __call__(self, input=None):
+        output = self.run_manager.run(input)
+        return output
 
     def __getstate__(self):
-        if not all(hasattr(self, attr) for attr in ['env', 'rscript', '_delete_funcs']):
+        if not all(hasattr(self, attr) for attr in ['env', 'script', 'run_manager', '_delete_funcs']):
             raise AttributeError("Object is missing required attributes for serialization.")
-        return self.env, self.rscript, self._delete_funcs
+        return self.env, self.script, self.run_manager, self._delete_funcs
 
     def __setstate__(self, state):
-        self.env, self.rscript, self._delete_funcs = state
+        self.env, self.script, self.run_manager, self._delete_funcs = state
 
     def __repr__(self) -> str:
-        return f'{self.alias}({", ".join(self.args)})'
+        return f'{self.alias}({self.args})'
 
-    @staticmethod
-    def _default_env_name(s) -> str:
-        return f'{s}-env'
+    def add_env(self, manager: str, env_kwargs: Dict) -> None:
+        self.env = PyREnv(manager, env_kwargs)
 
-    @staticmethod
-    def _default_env_prefix(s) -> Path:
-        return _reg_manager.envs / PyRFunc._default_env_name(s)
+    def add_script(self, lang: str, script_kwargs: Dict) -> None:
+        self.script = PyRScript(lang, script_kwargs)
 
-    @staticmethod
-    def _default_rscript_path(s) -> Path:
-        return _reg_manager.scripts / f'{s}.R'
+    def register(self, overwrite: bool = False) -> None:
+        if self.registered and not overwrite:
+            raise ValueError(f'{self.alias} is already registered.')
+        self._create_func()
+        _db_manager.register(self.alias, self)
 
-    @staticmethod
-    def _check_obj(obj, cls_type):
-        if isinstance(obj, (str, Path)):
-            raise NotImplementedError
-        elif isinstance(obj, cls_type):
-            return obj
-        else:
-            raise NotImplementedError
+    def unregister(self):
+        _db_manager.unregister(self.alias)
 
-    @classmethod
-    def _initialize(cls, alias, env, rscript, register, overwrite, cleanup):
-        func = cls(alias, env, rscript)
-        if register:
-            func.register(overwrite)
-        else:
-            for clean in cleanup:
-                if clean == Cleanup.ENV:
-                    func._delete_funcs.add(func.env.remove_env()) # remove env on exit
-                elif clean == Cleanup.RSCRIPT:
-                    func._delete_funcs.add(func.rscript.delete_file()) # remove R script on exit
+    def cleanup(self):
+        if self._delete_funcs:
+            for func in self._delete_funcs:
+                func()
+            self._delete_funcs.clear()
 
-        return func
+    def _create_func(self):
+        # Check for conflicts
+        self._resolve_conflicts()
 
-    @classmethod
-    def _create_rscript(cls, rscript_or_code, opts=None, libs=None, capture_output=False, capture_obj_name=None,
-                        capture_type='df', skip_out_lines=0):
-        if isinstance(rscript_or_code, PyRScript):
-            return rscript_or_code
-        else:
-            code = rscript_or_code
-            return PyRScript(cls._default_rscript_path(alias), code, libs=libs, opts=opts,
-                             capture_output=capture_output, capture_obj_name=capture_obj_name,
-                             capture_type=capture_type, skip_out_lines=skip_out_lines)
+        # Create components
+        if not self.script.script_exists:
+            self.script.create_script()
+            self._delete_funcs.add(self.script.delete_script)
 
-    @classmethod
-    def _create_env(cls, env_or_manager, env_kwargs=None):
-        if isinstance(env_or_manager, PyREnv):
-            return env_or_manager
-        else:
-            manager = env_or_manager
-            return PyREnv(cls._default_env_name(alias), cls._default_env_prefix(alias), manager, env_kwargs=env_kwargs)
+        if not self.env.env_exists:
+            self.env.create_env()
+            self._delete_funcs.add(self.env.remove_env)
 
-    @classmethod
-    def from_data(cls, alias, rscript_or_code, env_or_manager='mamba', opts=None, libs=None, capture_output=False,
-                  capture_obj_name=None, capture_type='df', skip_out_lines=0, env_kwargs=None, register=True,
-                  overwrite=False, cleanup=None) -> 'PyRFunc':
-        cls_rscript = cls._create_rscript(rscript_or_code, opts=opts, libs=libs, capture_output=capture_output,
-                                          capture_obj_name=capture_obj_name, capture_type=capture_type,
-                                          skip_out_lines=skip_out_lines)
-        cls_env = cls._create_env(env_or_manager, env_kwargs=env_kwargs)
-        return cls._initialize(alias, cls_env, cls_rscript, register, overwrite=overwrite, cleanup=cleanup)
+        # Set up run manager
+        self.run_manager = RunManager(self.env, self.script)
+
+    def _resolve_conflicts(self):
+        # --
+        # TODO: Temp for development
+        if self.script.lang == 'R':
+            if (self.env.manager in ['conda', 'mamba'] and
+                not self.env.env_manager.envfile and
+                not self.env.env_exists):
+                # If need to create env, but no envfile, add r-essentials and r-base
+                self.env.env_manager.add_channel('r')
+                self.env.env_manager.add_dependency = 'r-essentials'
+                self.env.env_manager.add_dependency = 'r-base'
+
+            if self.script.script_writer.args:
+                self.script.script_writer.add_lib('optparse')
+
+            if self.script.script_writer.ret:
+                if self.script.script_writer.output_type == OutputType.DF:
+                    self.script.script_writer.add_lib('readr')
+        # --
 
     @classmethod
-    def from_rscript(cls, alias, rscript, manager: str = 'mamba', env_kwargs: Union[Dict, None] = None,
-                     register: bool = True, overwrite: bool = False) -> 'PyRFunc':
-        return cls.from_data(alias, rscript, manager, env_kwargs=env_kwargs, register=register,
-                             overwrite=overwrite, cleanup=['env'])
+    def from_scratch(
+        cls,
+        alias: str,
+        manager: str,
+        lang: str,
+        args: Dict[str, Dict] = None,
+        code: str = None,
+        deps: Dict[str, List] = None,
+        envfile: Path = None,
+        output_type: str = None,
+        prefix: Path = None,
+        ret_name: str = None,
+        env_kwargs: Dict = None,
+        script_kwargs: Dict = None,
+        register: bool = True,
+    ):        
+        # --
+        # TODO: Refactor this logic to use a builder pattern
+        if not env_kwargs:
+            env_kwargs = {}
+            env_kwargs['envfile'] = envfile
+            env_kwargs['name'] = f'{alias}-env'
+            env_kwargs['prefix'] = prefix or _reg_manager.envs / f'{alias}-env'
+            
+            # `deps` parsing
+            if isinstance(deps, dict):
+                env_kwargs['dependencies'] = parse_dependency_config(deps)
+            elif isinstance(deps, list):
+                env_kwargs['dependencies'] = deps # Assume they're already parsed
+            else:
+                raise ValueError(f'Invalid type for `deps`: {type(deps)}')
 
-    @classmethod
-    def from_env(cls, alias, env, code: str, opts: Union[List, None] = None, libs: Union[List, None] = None,
-                 capture_output: bool = False, capture_obj_name : str = None,
-                 capture_type: str = 'df', skip_out_lines: int = 0, register: bool = True,
-                 overwrite: bool = False) -> 'PyRFunc':
-        return cls.from_data(alias, code, env, opts=opts, libs=libs, capture_output=capture_output,
-                             capture_obj_name=capture_obj_name, capture_type=capture_type,
-                             skip_out_lines=skip_out_lines, register=register, overwrite=overwrite,
-                             cleanup=['rscript'])
+        if not script_kwargs:
+            script_kwargs = {}
+            script_kwargs['args'] = args or {}
+            script_kwargs['code_body'] = code
+            script_kwargs['output_type'] = output_type
+            script_kwargs['path'] = _reg_manager.scripts / f'{alias}.{lang.lower()}'
+            script_kwargs['ret'] = bool(output_type)
+            script_kwargs['ret_name'] = ret_name or parse_output_from_rscript(code) if output_type else None
+            
+            # `deps` parsing
+            if isinstance(deps, dict):
+                if lang == 'R':
+                    script_kwargs['libs'] = deps.get('cran', []) + deps.get('bioc', []) if deps else []
+                elif lang == 'python':
+                    script_kwargs['libs'] = deps.get('pypi', []) + deps.get('conda', []) if deps else []
+                else:
+                    raise NotImplementedError
+            elif isinstance(deps, list):
+                script_kwargs['libs'] = deps # Assume they're already parsed
+        
+        # --
+        
+        # Create the function
+        pyr_func = cls(alias, keep=register)
+        pyr_func.add_env(manager, env_kwargs)
+        pyr_func.add_script(lang, script_kwargs)
+        pyr_func.register()
 
-    @classmethod
-    def from_scratch(cls, alias, code, opts: Union[List, None] = None, libs: Union[List, None] = None,
-                     capture_output: bool = False, capture_obj_name : str = None, capture_type: str = 'df',
-                     skip_out_lines: int = 0, manager: str = 'mamba', env_kwargs: Union[Dict, None] = None,
-                     register: bool = True, overwrite: bool = False) -> 'PyRFunc':
-        return cls.from_data(alias, code, manager, opts=opts, libs=libs, capture_output=capture_output,
-                             capture_obj_name=capture_obj_name, capture_type=capture_type,
-                             skip_out_lines=skip_out_lines, env_kwargs=env_kwargs, register=register,
-                             overwrite=overwrite, cleanup=['rscript', 'env'])
+        return pyr_func
 
     @classmethod
     def from_registry(cls, alias: str, alias_new: str = None):
@@ -156,43 +168,24 @@ class PyRFunc:
             to allow for multiple aliases to point to the same function, multiple versions
             but with different python class attributes, etc.
         """
-        func = cls._db_manager.from_registry(alias)
+        func = _db_manager.from_registry(alias)
         setattr(func, 'alias', alias_new or alias)
         return func
 
     @property
-    def args(self) -> List[str]:
-        return self.rscript.rscript_manager.get_opts()
+    def args(self) -> str:
+        return ", ".join(self.script.script_args)
 
     @property
-    def run_kwargs(self) -> Dict:
-        # TODO: Temp for development
-        return dict(
-            capture_output = self.rscript.capture_output,
-            capture_type = self.rscript.capture_type,
-            skip_out_lines = self.rscript.skip_out_lines
-        )
+    def registered(self) -> bool:
+        return _db_manager.entry_exists(self.alias)
 
     @property
-    def rscript_path(self) -> str:
-        return self.rscript.rscript_manager.versioned_path
-
-    def register(self, overwrite: bool = False) -> None:
-        if self._is_registered and not overwrite:
-            raise ValueError(f'{self.alias} is already registered.')
-        PyRFunc._db_manager.register(self.alias, self)
-        self._is_registered = True
-
-    def run(self, cmd) -> Union[None, pd.DataFrame]:
-        _logger.info(f'Running {self.alias}...\n\tCommand: {cmd}')
-        return run_rscript(self.env.get_run_in_env_cmd(cmd), **self.run_kwargs)
-
-    def unregister(self):
-        self._db_manager.unregister(self.alias)
-        self._is_registered = False
+    def script_path(self) -> str:
+        return self.script.script_writer.versioned_path
 
     @atexit.register
-    def cleanup(self) -> None:
+    def cleanup_unregistered(self) -> None:
         """
         Notes:
             - This is called when the interpreter exits.
@@ -200,8 +193,22 @@ class PyRFunc:
             - This is not called when the interpreter is killed by a signal.
             - This is not called when a thread exits.
         """
-        if self._delete_funcs:
-            print('Cleaning up...')
-            for func in self._delete_funcs:
-                func()
-            self._delete_funcs.clear()
+        if self.keep == False:
+            self.cleanup()
+            self.unregister()
+
+def parse_output_from_rscript(s):
+    # TODO: Handle '<-' or '=' (or ' <-')
+    # TODO: Should add third case: when at start of line
+    if len(s.split(' <-')) == 2:
+        return s.split(' <-')[0].strip()
+    else:
+        return re.findall(r"(?:;|\n)\s*(.*?) <-", s)[-1]
+
+def parse_dependency_config(conf: Dict):
+    cran_deps = [f'r-{dep.lower()}' for dep in conf.get('cran', [])]
+    bioc_deps = [f'bioconductor-{dep.lower()}' for dep in conf.get('bioc', [])]
+    conda_deps = [dep.lower() for dep in conf.get('conda', [])]
+    pip_deps = [dep.lower() for dep in conf.get('pypi', [])]
+    
+    return cran_deps + bioc_deps + conda_deps + pip_deps

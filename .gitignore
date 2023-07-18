@@ -24,6 +24,7 @@ __pycache__/*
 .vscode
 tags
 _dev
+tests/envs/test-env
 usr/envs/*
 usr/scripts/*
 *.db
