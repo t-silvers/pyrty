@@ -3,7 +3,7 @@
     :target: https://pyscaffold.org/
 
 =====
-pyrty
+PyRty
 =====
 
 
