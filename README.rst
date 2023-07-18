@@ -10,13 +10,16 @@ PyRty
     Use R snippets as Python functions. Manage R dependencies separately.
 
 
-Use simple R snippets or scripts in Python as functions with pythonic 
+Use simple R snippets or complex scripts in Python as functions with pythonic 
 signatures. Let :code:`conda` , :code:`mamba` , :code:`renv` , or 
-:code:`packrat` manage R dependencies outside of your current environment. 
-Most powerful when R code returns a conformable dataframe object.
+:code:`packrat` manage dependencies outside of your current environment. 
+Most powerful when R code returns a conformable dataframe object. Extensible
+to languages beyond R, including Python and Bash/shell scripts.
 
-For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to 
-go the other way around (Python in R).
+For a more powerful alternative for using R in Python, consider
+using `rpy2`_. Use `basilisk`_ or `reticulate`_ to go the other way
+around (Python in R). Depending on the use case, it may be more appropriate
+to use a workflow management system like Snakemake, Nextflow, or Airflow.
 
 Contents
 =========
