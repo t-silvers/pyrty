@@ -167,7 +167,7 @@ Environment creation can be costly. Here we demonstrate how to use the R package
 scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_.
 
 .. code-block:: python
-    
+
     from pathlib import Path
     from pyrty import PyRFunc
 
@@ -196,7 +196,7 @@ scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_.
         de_prob = dict(type="'double'", default=0.1),
     )
     splat_pkgs = ['janitor', 'splatter', 'tibble']
-    splat_env = Path('/Users/silvers/mambaforge-pypy3/envs/splatter-env')
+    splat_env = Path('/path/to/envs/splatter-env')
     splat_sim = PyRFunc.from_scratch('splat_sim', manager='mamba', lang='R', args=splat_opts,
                                      deps=splat_pkgs, code=splat_code, prefix=splat_env,
                                      ret_name='sim.res', output_type='df', register=True)
