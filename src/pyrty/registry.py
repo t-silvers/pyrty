@@ -5,19 +5,10 @@ from pathlib import Path
 
 
 class DBManager:
-    def __init__(self, db_filename='registry.db', table_name='registry'):
-        self.db_filename = db_filename
+    def __init__(self, db_filename='registry.db', table_name='registry', db_dir: Path = None):
+        self.db_filename = str(db_dir / db_filename) if db_dir is not None else str(_get_default_dir() / db_filename)
         self.table_name = table_name
         self._init_db()
-
-    def _init_db(self):
-        with sqlite3.connect(self.db_filename) as conn:
-            conn.execute(f'''
-                CREATE TABLE IF NOT EXISTS {self.table_name} (
-                    name TEXT PRIMARY KEY,
-                    data BLOB
-                )
-            ''')
 
     def entry_exists(self, name):
         with sqlite3.connect(self.db_filename) as conn:
@@ -50,12 +41,8 @@ class DBManager:
             return pickle.loads(row[0])
 
     def unregister(self, name):
-        # Remove associated files
         pyr_func = self.from_registry(name)
-        pyr_func.env.remove_env()
-        pyr_func.rscript.delete_file()
-        
-        # Remove from registry
+        pyr_func.cleanup() # Only generated files are removed
         with sqlite3.connect(self.db_filename) as conn:
             conn.execute(f"DELETE FROM {self.table_name} WHERE name = ?", (name,))
             conn.commit()
@@ -68,12 +55,24 @@ class DBManager:
             pyr_func.cleanup()
             pyr_func.unregister()
 
+    def _init_db(self):
+        with sqlite3.connect(self.db_filename) as conn:
+            conn.execute(f'''
+                CREATE TABLE IF NOT EXISTS {self.table_name} (
+                    name TEXT PRIMARY KEY,
+                    data BLOB
+                )
+            ''')
+
+    def __str__(self):
+        return f"DB filename: {self.db_filename}\n" \
+               f"Table name: {self.table_name}"
+
 
 class RegistryManager:
     def __init__(self, pyrty_dir=None, env_dir=None, script_dir=None):
         # TODO: Temporary for development
-        default_dir = Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))) / 'usr'
-        self.pyrty_dir = pyrty_dir if pyrty_dir is not None else default_dir
+        self.pyrty_dir = pyrty_dir if pyrty_dir is not None else _get_default_dir()
         self.envs = env_dir if env_dir is not None else self.pyrty_dir / 'envs'
         self.scripts = script_dir if script_dir is not None else self.pyrty_dir / 'scripts'
         
@@ -93,3 +92,19 @@ class RegistryManager:
             "envs": str(self.envs.resolve()),
             "scripts": str(self.scripts.resolve())
         }
+
+    def __str__(self):
+        return f"PyRty directory: {self.pyrty_dir}\n" \
+               f"Envs directory: {self.envs}\n" \
+               f"Scripts directory: {self.scripts}"
+
+
+def _get_default_dir():
+    return Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))) / 'usr'
+
+unregister_pyrty_func = DBManager().unregister
+"""Convenience function for removing a PyRty function from the registry.
+
+Args:
+    name (str): The name of the PyRty function to remove.
+"""

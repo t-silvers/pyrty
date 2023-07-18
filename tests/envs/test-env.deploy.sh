@@ -1,0 +1,2 @@
+/Users/silvers/mambaforge-pypy3/condabin/mamba create -p /Users/silvers/Packages/pyrty/tests/envs/test-env --no-default-packages -y
+/Users/silvers/mambaforge-pypy3/condabin/mamba env update -p /Users/silvers/Packages/pyrty/tests/envs/test-env --file /Users/silvers/Packages/pyrty/tests/envs/test-env.yaml

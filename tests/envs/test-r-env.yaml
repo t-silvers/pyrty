@@ -1,0 +1,15 @@
+name: test-r-env
+channels:
+  - conda-forge
+  - r
+  - bioconda
+dependencies:
+  - bioconductor-BiocGenerics
+  - r-base
+  - r-dplyr
+  - r-essentials
+  - r-janitor
+  - r-jsonlite
+  - r-optparse
+  - r-readr
+  - r-tibble

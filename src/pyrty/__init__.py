@@ -13,7 +13,7 @@ finally:
 
 from pyrty.pyr_env import PyREnv
 from pyrty.pyr_func import PyRFunc
-from pyrty.pyr_rscript import PyRScript
-from pyrty.registry import DBManager, RegistryManager
+from pyrty.pyr_script import PyRScript
+from pyrty.registry import DBManager, RegistryManager, unregister_pyrty_func
 
-__all__ = ['PyREnv', 'PyRScript', 'PyRFunc', 'DBManager', 'RegistryManager']
+__all__ = ['PyREnv', 'PyRScript', 'PyRFunc', 'DBManager', 'RegistryManager', 'unregister_pyrty_func']
