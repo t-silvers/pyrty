@@ -289,8 +289,7 @@ Debugging
 
 Debugging :code:`pyrty` functions can be tricky. Here are some tips, using the :code:`susie` example from above.
 
-#. Explicitly create the environment (outside of :code:`pyrty`) and validate that the provided code can be run.
-
+#. Explicitly create the environment (outside of :code:`pyrty`) and validate that the environment can be created and that the provided code can be run.
 
 #. Inspect the function's R script.
 
