@@ -7,16 +7,16 @@ pyrty
 =====
 
 
-    Use R snippets as python functions. Manage R dependencies separately.
+    Use R snippets as Python functions. Manage R dependencies separately.
 
 
-Use simple R snippets or scripts in python as functions with pythonic 
+Use simple R snippets or scripts in Python as functions with pythonic 
 signatures. Let :code:`conda` , :code:`mamba` , :code:`renv` , or 
 :code:`packrat` manage R dependencies outside of your current environment. 
 Most powerful when R code returns a conformable dataframe object.
 
 For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to 
-go the other way around (python in R).
+go the other way around (Python in R).
 
 Contents
 =========
@@ -31,6 +31,7 @@ Contents
     - `Complex R snippet`_
     - `With an existing env`_
     - `Utility functions`_
+- `Support for other languages`_
 - `Debugging`_
 - `Notes`_
 
@@ -55,9 +56,9 @@ Examples
 Wrap a simple R snippet in a python function:
 ----------------------------------------------------
 
-To create a python function from an R snippet, we need to specify an
+To create a Python function from an R snippet, we need to specify an
 environment manager (:code:`conda` , :code:`mamba` , or :code:`renv`),
-a language (:code:`R` or :code:`python`), code, and a set of dependencies.
+a language (R or Python), code, and a set of dependencies.
 Here, we also specify a set of arguments (:code:`args`) and an output to
 collect (:code:`output_type`).
 
@@ -82,7 +83,7 @@ collect (:code:`output_type`).
 Wrap a more complex R snippet:
 ----------------------------------------------------
 
-Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use 
+Here we port the `“Sum of Single Effects” (SuSiE) model`_ to Python and use 
 :code:`mamba` to manage R dependencies. We assume that the user has a valid 
 environment file, :code:`/path/to/susie-env.yaml` (for more info on 
 environment files, see `conda's docs`_).
@@ -91,7 +92,7 @@ environment files, see `conda's docs`_).
 
     from pyrty import PyRFunc
 
-    # (1) Create a python susie function
+    # (1) Create a Python susie function
     # ----------------------------------
     # Can write code here as list or in a separate file.
     # If you write the code as in here, `pyrty` will manage
@@ -191,7 +192,7 @@ scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_.
     from pathlib import Path
     from pyrty import PyRFunc
 
-    # (1) Create a python splatSimulate() function
+    # (1) Create a Python splatSimulate() function
     # --------------------------------------------
     splat_code = """# Params
     set.seed(1)
@@ -301,6 +302,20 @@ environment, :code:`sandbox`.
     # 3  3   6  1
     # 4  4   8  1
     # 5  5  10  1
+
+.. _Support for other languages:
+
+Support for other languages
+==============================
+
+:code:`pyrty` was designed to be language agnostic and explicitly supports
+R, Python, and Bash/shell scripts via the :code:`PyRScript` module. Support
+for other languages can be added by subclassing :code:`BaseScriptWriter`.
+For some languages, e.g. Julia and Java, environment managers for :code:`conda`
+or :code:`mamba` may be used straightforwardly with custom post-deployment
+commands (see :code:`postdeploy_cmds` arg); however for other languages, 
+it may be necessary to subclass the :code:`BaseEnvManager` class for
+environment management.
 
 .. _Debugging:
 
