@@ -243,8 +243,8 @@ Run a script and capture DF output:
 ====================================
 
 The utility function :code:`run_capture()` is a very lightweight wrapper for 
-running a script and (optionally) capturing its output. It is used 
-internally by :code:`pyrty` to run R scripts in a subprocess. Below we 
+running a script and capturing its output. It is used internally by :code:`pyrty`'s
+run manager to run scripts in a subprocess and capture their stdout. Below we 
 demonstrate its usage with a simple R script that takes a single argument 
 :code:`--c` and writes a dataframe to stdout in some existing :code:`mamba` 
 environment, :code:`sandbox`.
