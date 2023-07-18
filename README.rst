@@ -19,6 +19,9 @@ For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to
 go the other way around (python in R).
 
 
+Contents
+================================================
+
 .. contents:: Table of Contents
    :local:
    :depth: 2
