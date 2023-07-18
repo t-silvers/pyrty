@@ -18,15 +18,21 @@ Most powerful when R code returns a conformable dataframe object.
 For a more powerful alternative, consider using `rpy2`_. Use `basilisk`_ to 
 go the other way around (python in R).
 
-
 Contents
-================================================
+=========
 
 .. contents:: Table of Contents
    :local:
    :depth: 2
 
 - `Installation`_
+- `Examples`_
+    - `Simple R snippet`_
+    - `Complex R snippet`_
+    - `With an existing env`_
+    - `Utility functions`_
+- `Debugging`_
+- `Notes`_
 
 .. _Installation:
 
@@ -40,9 +46,13 @@ Installation
     cd pyrty
     pip install .
 
+.. _Examples:
+
 ==========
 Examples
 ==========
+
+.. _Simple R snippet:
 
 Wrap a simple R snippet in a python function:
 ================================================
@@ -69,6 +79,7 @@ collect (:code:`output_type`).
     #   4  8 3
     #   5 10 3
 
+.. _Complex R snippet:
 
 Wrap a more complex R snippet:
 ====================================================
@@ -131,7 +142,6 @@ environment files, see `conda's docs`_).
     # Indices of nonzero weights from SuSiE:
     # [11 12 18 20 25 38 49 50 55 68]
 
-
 The resulting function, :code:`susie`, can be wrapped in a custom 
 :code:`scikit-learn` estimator.
 
@@ -169,6 +179,7 @@ The resulting function, :code:`susie`, can be wrapped in a custom
     susie_reg.predict(X)
     susie_reg.score(X, y)
 
+.. _With an existing env:
 
 Deploy a function in an existing environment:
 =====================================================
@@ -248,7 +259,7 @@ environment existed when the function was created.
     splat_sim.env.env_exists
     # True
 
-
+.. _Utility functions:
 
 Run a script and capture DF output:
 ====================================
@@ -293,6 +304,7 @@ environment, :code:`sandbox`.
     # 4  4   8  1
     # 5  5  10  1
 
+.. _Debugging:
 
 ==========
 Debugging
@@ -313,7 +325,6 @@ Debugging :code:`pyrty` functions can be tricky. Here are some tips, using the :
     .. code-block:: python
 
       susie.run_manager.run(data, dry_run=True)
-
 
 =====
 Notes
