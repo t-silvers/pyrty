@@ -167,6 +167,7 @@ Environment creation can be costly. Here we demonstrate how to use the R package
 scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_.
 
 .. code-block:: python
+    
     from pathlib import Path
     from pyrty import PyRFunc
 
