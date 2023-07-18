@@ -36,7 +36,6 @@ Contents
 
 .. _Installation:
 
-=================
 Installation
 =================
 
@@ -48,14 +47,13 @@ Installation
 
 .. _Examples:
 
-==========
 Examples
 ==========
 
 .. _Simple R snippet:
 
 Wrap a simple R snippet in a python function:
-================================================
+----------------------------------------------------
 
 To create a python function from an R snippet, we need to specify an
 environment manager (:code:`conda` , :code:`mamba` , or :code:`renv`),
@@ -82,7 +80,7 @@ collect (:code:`output_type`).
 .. _Complex R snippet:
 
 Wrap a more complex R snippet:
-====================================================
+----------------------------------------------------
 
 Here we port the `“Sum of Single Effects” (SuSiE) model`_ to python and use 
 :code:`mamba` to manage R dependencies. We assume that the user has a valid 
@@ -182,7 +180,7 @@ The resulting function, :code:`susie`, can be wrapped in a custom
 .. _With an existing env:
 
 Deploy a function in an existing environment:
-=====================================================
+----------------------------------------------------
 
 Environment creation can be costly. Here we demonstrate how to use the R package
 :code:`splatter` within an existing environment to simulate 
@@ -262,7 +260,7 @@ environment existed when the function was created.
 .. _Utility functions:
 
 Run a script and capture DF output:
-====================================
+-------------------------------------
 
 The utility function :code:`run_capture()` is a very lightweight wrapper for 
 running a script and capturing its output. It is used internally by :code:`pyrty`'s
@@ -306,7 +304,6 @@ environment, :code:`sandbox`.
 
 .. _Debugging:
 
-==========
 Debugging
 ==========
 
@@ -326,7 +323,8 @@ Debugging :code:`pyrty` functions can be tricky. Here are some tips, using the :
 
       susie.run_manager.run(data, dry_run=True)
 
-=====
+.. _Notes:
+
 Notes
 =====
 
