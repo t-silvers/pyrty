@@ -228,7 +228,8 @@ multiple users and machines simultaneously.
 
 
 :code:`pyrty` internally tracks which files it has created. Unregistering
-:code:`'splat_sim'` will not delete the :code:`splatter` environment if removed.
+:code:`'splat_sim'` will not delete the :code:`splatter` environment if the
+environment existed when the function was created.
 
 .. code-block:: python
 
