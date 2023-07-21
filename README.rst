@@ -348,12 +348,9 @@ Notes
 =====
 
 :code:`pyrty` was developed for personal use in a single-user environment.
-This is a pre-alpha release and many limitations aren't documented. The API 
-is subject to change. 
-
-since sgkit is still a 0.x release, its API is still subject to non-backwards compatible changes.
-
-Feel free to report any issues on the issue tracker. 
+This is a pre-alpha release and many limitations aren't documented. Since 
+:code:`pyrty` is still a 0.x release, the API is subject to non-backwards 
+compatible changes. Feel free to report any issues on the issue tracker. 
 :code:`pyrty` is only tested on Linux and MacOS.
 
 Note that :code:`pyrty` utilizes :code:`conda` /:code:`mamba` /:code:`packrat` 
