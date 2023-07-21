@@ -384,10 +384,10 @@ While no benchmarks are provided, :code:`rpy2` will almost always be more
 performant, with some caveats for memory-bound functions and based on 
 distribution and processing details.
 
-In summary, :code:`pyrty` is useful for quickly implementing readable, reusable, 
-and shareable Python code when its underlying dependencies are more easily managed 
-independently of the working environment. These situations arise both in quick 
-prototyping and in shipped code that is not performance critical.
+In summary, :code:`pyrty` is useful for quickly implementing clean Python code 
+whose underlying dependencies are more easily managed independently of the 
+working environment. These situations arise both in quick prototyping and in 
+shipped code that is not performance critical.
 
 .. External references:
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
