@@ -349,7 +349,11 @@ Notes
 
 :code:`pyrty` was developed for personal use in a single-user environment.
 This is a pre-alpha release and many limitations aren't documented. The API 
-is subject to change. Feel free to report any issues on the issue tracker. 
+is subject to change. 
+
+since sgkit is still a 0.x release, its API is still subject to non-backwards compatible changes.
+
+Feel free to report any issues on the issue tracker. 
 :code:`pyrty` is only tested on Linux and MacOS.
 
 Note that :code:`pyrty` utilizes :code:`conda` /:code:`mamba` /:code:`packrat` 
@@ -382,6 +386,11 @@ even better integrated, easier to use, and produce cleaner code than :code:`rpy2
 While no benchmarks are provided, :code:`rpy2` will almost always be more 
 performant, with some caveats for memory-bound functions and based on 
 distribution and processing details.
+
+In summary, :code:`pyrty` is useful for quickly implementing readable, reusable, 
+and shareable Python code when its underlying dependencies are more easily managed 
+independently of the working environment. These situations arise both in quick 
+prototyping and in shipped code that is not performance critical.
 
 .. External references:
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
