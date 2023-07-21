@@ -380,8 +380,8 @@ To be sure, :code:`pyrty`'s reliance on subprocesses is likely less "efficient"
 than the approach used by :code:`rpy2`. However, :code:`pyrty` strives to be
 even better integrated, easier to use, and produce cleaner code than :code:`rpy2`. 
 While no benchmarks are provided, :code:`rpy2` will almost always be more 
-performant, with some caveats for memory-bound functions, distribution, and 
-processing details.
+performant, with some caveats for memory-bound functions and based on 
+distribution and processing details.
 
 .. External references:
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
