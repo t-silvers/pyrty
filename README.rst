@@ -393,7 +393,7 @@ shipped code that is not performance critical.
 .. External references:
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
 .. _conda's docs: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file
-.. _dylkot/scsim2 https://github.com/dylkot/scsim2
+.. _dylkot/scsim2: https://github.com/dylkot/scsim2
 .. _reticulate: https://rstudio.github.io/reticulate/
 .. _rpy2: https://rpy2.github.io/doc/latest/html/index.html
 .. _splatter tutorial: https://bioconductor.org/packages/release/bioc/vignettes/splatter/inst/doc/splatter.html#4_The_SplatParams_object
