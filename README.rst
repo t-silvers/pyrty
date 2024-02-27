@@ -189,7 +189,8 @@ Deploy a function in an existing environment:
 
 Environment creation can be costly. Here we demonstrate how to use the R package
 :code:`splatter` within an existing environment to simulate 
-scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_.
+scRNA-seq data. For more info on :code:`splatter`, see the `splatter tutorial`_. 
+Note that part of :code:`splatter`'s functionality exists in pure python and is provided by `dylkot/scsim2`_.
 
 .. code-block:: python
 
@@ -392,6 +393,7 @@ shipped code that is not performance critical.
 .. External references:
 .. _basilisk: https://www.bioconductor.org/packages/release/bioc/html/basilisk.html
 .. _conda's docs: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file
+.. _dylkot/scsim2 https://github.com/dylkot/scsim2
 .. _reticulate: https://rstudio.github.io/reticulate/
 .. _rpy2: https://rpy2.github.io/doc/latest/html/index.html
 .. _splatter tutorial: https://bioconductor.org/packages/release/bioc/vignettes/splatter/inst/doc/splatter.html#4_The_SplatParams_object
