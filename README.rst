@@ -283,7 +283,8 @@ environment, :code:`sandbox`.
     from pyrty.utils import run_capture
 
     # Create a temporary R script or use an existing one
-    rscript_code = """# Keep stdout clean
+    rscript_code = \
+    """# Keep stdout clean
     options(warn=-1)
     suppressPackageStartupMessages(library(optparse))
     suppressPackageStartupMessages(library(tidyverse))
@@ -293,7 +294,8 @@ environment, :code:`sandbox`.
     # Create a dataframe and write to stdout
     a <- 1:5
     df <- tibble::tibble(a, b = a * 2, c = opt$c)
-    try(writeLines(readr::format_csv(df), stdout()), silent=TRUE)"""
+    try(writeLines(readr::format_csv(df), stdout()), silent=TRUE)
+    """
 
     with NamedTemporaryFile('w+') as rscript:
         rscript_path = Path(rscript.name)
